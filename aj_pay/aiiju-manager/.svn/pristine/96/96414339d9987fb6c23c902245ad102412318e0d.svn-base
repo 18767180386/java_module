@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.DealDetailMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.DealDetail">
+		insert into deal_detail(goods_id,goods_name,price,num,unit,sum,code,serial_num,create_date,image_url,goods_type_id,goods_type_name) 
+		values(#{goodsId},#{goodsName},#{price},#{num},#{unit},#{sum},#{code},#{serialNum},#{createDate},#{imageUrl},#{goodsTypeId},#{goodsTypeName})
+	</insert>
+	
+	<!-- 批量插入 -->
+	<insert id="insertBatch" parameterType="java.util.ArrayList">
+		insert into deal_detail(goods_id,goods_name,price,num,unit,sum,code,serial_num,create_date,image_url,goods_type_id,goods_type_name) values
+		<foreach collection="list" item="detail" index="index" separator=",">  
+			(#{detail.goodsId},#{detail.goodsName},#{detail.price},#{detail.num},#{detail.unit},#{detail.sum},#{detail.code},#{detail.serialNum}
+			,#{detail.createDate},#{detail.imageUrl},#{detail.goodsTypeId},#{detail.goodsTypeName})
+    	</foreach>  
+	</insert>
+
+	<select id="getBySerialNum" parameterType="java.lang.String" resultType="com.aiiju.pojo.DealDetail">
+		select id,goods_id as goodsId,goods_name as goodsName,price,num,unit,sum,code,create_date as createDate
+		,image_url as imageUrl,goods_type_id as goodsTypeId,goods_type_name as goodsTypeName
+
+		 from deal_detail 
+		where serial_num = #{serialNum}
+	</select>
+	
+</mapper>

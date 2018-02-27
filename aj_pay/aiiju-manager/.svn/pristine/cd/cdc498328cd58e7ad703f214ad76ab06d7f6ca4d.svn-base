@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.SignPayMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.SignPay" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="store_id" property="storeId" jdbcType="VARCHAR" />
+    <result column="parent_store_id" property="parentStoreId" jdbcType="VARCHAR" />
+    <result column="shop_type" property="shopType" jdbcType="VARCHAR" />
+    <result column="alipay_switch" property="alipaySwitch" jdbcType="VARCHAR" />
+    <result column="wx_switch" property="wxSwitch" jdbcType="VARCHAR" />
+    <result column="pa_alipay_switch" property="paAlipaySwitch" jdbcType="VARCHAR" />
+    <result column="pa_wx_switch" property="paWxSwitch" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, store_id, parent_store_id, shop_type, alipay_switch, wx_switch, pa_alipay_switch, 
+    pa_wx_switch, remark
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from sign_pay
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+   <select id="querySignPay" resultMap="BaseResultMap" parameterType="com.aiiju.pojo.SignPay" >
+    select 
+    <include refid="Base_Column_List" />
+    from sign_pay
+    where store_id = #{storeId}
+  </select>
+  
+  <select id="queryShopSignStatus" resultType="com.aiiju.pojo.Shop" parameterType="java.lang.String" >
+    select alipay,wx,parent_store_id parentStoreId,shop_type ShopType from shop where store_id = #{storeId} 
+  </select>
+  
+   <select id="queryReputationSignStatus" resultType="com.aiiju.pojo.ReputationShopInfo" parameterType="java.lang.String" >
+    select review_status from reputation_shopinfo where store_id = #{storeId} 
+  </select>
+  
+  <select id="queryPAMerchant" resultType="com.aiiju.pojo.PAMerchant" parameterType="java.lang.String" >
+    select id,store_id storeId from pa_merchant where store_id = #{storeId} 
+  </select>
+  
+  <select id="queryPAContractStatus" resultType="com.aiiju.pojo.PAContract" parameterType="java.lang.String" >
+    select id ,status,remark,pmt_tag as pmtTag from pa_contract where store_id = #{storeId} 
+  </select>
+  
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from sign_pay
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="add" parameterType="com.aiiju.pojo.SignPay" >
+    insert into sign_pay
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="storeId != null" >
+        store_id,
+      </if>
+      <if test="parentStoreId != null" >
+        parent_store_id,
+      </if>
+      <if test="shopType != null" >
+        shop_type,
+      </if>
+      <if test="alipaySwitch != null" >
+        alipay_switch,
+      </if>
+      <if test="wxSwitch != null" >
+        wx_switch,
+      </if>
+      <if test="paAlipaySwitch != null" >
+        pa_alipay_switch,
+      </if>
+      <if test="paWxSwitch != null" >
+        pa_wx_switch,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="storeId != null" >
+        #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="parentStoreId != null" >
+        #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="shopType != null" >
+        #{shopType,jdbcType=VARCHAR},
+      </if>
+      <if test="alipaySwitch != null" >
+        #{alipaySwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="wxSwitch != null" >
+        #{wxSwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="paAlipaySwitch != null" >
+        #{paAlipaySwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="paWxSwitch != null" >
+        #{paWxSwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  <update id="update" parameterType="com.aiiju.pojo.SignPay" >
+    update sign_pay
+    <set >
+   
+      <if test="shopType != null" >
+        shop_type = #{shopType,jdbcType=VARCHAR},
+      </if>
+      <if test="alipaySwitch != null" >
+        alipay_switch = #{alipaySwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="wxSwitch != null" >
+        wx_switch = #{wxSwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="paAlipaySwitch != null" >
+        pa_alipay_switch = #{paAlipaySwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="paWxSwitch != null" >
+        pa_wx_switch = #{paWxSwitch,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where store_id = #{storeId}
+  </update>
+ 
+</mapper>

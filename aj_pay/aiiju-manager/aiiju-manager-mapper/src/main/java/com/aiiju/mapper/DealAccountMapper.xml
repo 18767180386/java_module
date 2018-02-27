@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.DealAccountMapper">
+
+	<insert id="addApliay" parameterType="com.aiiju.pojo.DealAccount" useGeneratedKeys="true"  keyProperty="id">
+		insert into deal_account(deal_id,deal_serial_num,user_id,auth_app_id,app_auth_token,create_date,store_id)
+		 values(#{dealId},#{dealSerialNum},#{userId},#{authAppId},#{appAuthToken},#{createDate},#{storeId})
+	</insert>
+	<insert id="addWeChat" parameterType="com.aiiju.pojo.DealAccount" useGeneratedKeys="true"  keyProperty="id">
+		insert into deal_account(deal_id,deal_serial_num,sub_mch_id,sub_app_id,create_date,store_id)
+		 values(#{dealId},#{dealSerialNum},#{subMchId},#{subAppId},#{createDate},#{storeId})
+	</insert>
+	
+	<insert id="addPa" parameterType="com.aiiju.pojo.DealAccount" useGeneratedKeys="true"  keyProperty="id">
+		insert into deal_account(deal_id,deal_serial_num,open_id,open_key,trade_account,create_date,store_id)
+		 values(#{dealId},#{dealSerialNum},#{openId},#{openKey},#{tradeAccount},#{createDate},#{storeId})
+	</insert>
+	
+	
+	<sql id="selectSql">
+		id,deal_id,deal_serial_num,user_id,auth_app_id,app_auth_token,create_date,store_id,deal_serial_num,sub_mch_id
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.DealAccount" id="dealAccountMap">
+		<id column="id" property="id"/>
+		<result column="deal_id" property="dealId" />
+		<result column="deal_serial_num" property="dealSerialNum" />
+		<result column="user_id" property="userId" />
+		<result column="auth_app_id" property="authAppId" />
+		<result column="app_auth_token" property="appAuthToken" />
+		<result column="store_id" property="storeId" />
+		<result column="sub_mch_id" property="subMchId" />
+		<result column="sub_app_id" property="subAppId" />
+		<result column="create_date" property="createDate" />
+	</resultMap>
+	
+
+</mapper>

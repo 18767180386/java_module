@@ -1,0 +1,211 @@
+package com.aiiju.store.controller.rest;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.signTool;
+import com.aiiju.pojo.Goods;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.service.DealService;
+import com.aiiju.store.service.GoodsService;
+import com.aiiju.store.service.InventoryService;
+import com.aiiju.store.service.UserService;
+
+/**
+ * @ClassName: ErpController  
+ * @Description: 和ERP 系统对接相关 代码
+ * @author 天明
+ * @date 2017年7月13日下午3:58:18
+ */
+@Controller
+@RequestMapping("/erp")
+public class ErpController {
+	
+	private static Logger logger = Logger.getLogger(ErpController.class);
+	
+	@Autowired
+    private UserService userService;
+	
+    @Autowired
+    private DealService dealService;
+    
+    @Autowired
+	private InventoryService inventoryService;
+    
+    @Autowired
+	private GoodsService goodsService;
+	
+    /**
+     * 获取授权 ，所谓的获取授权。就是拿到授权店铺的信息。以及总店的信息
+     * @param rId
+     * @return
+     */
+    @RequestMapping(value = "/getGrant")
+    @ResponseBody
+    public Result getGrant(String rId,String requtestTime,String sign) {
+    	// 判断请求是否超时 
+    	if(isOutOfTime(Long.parseLong(requtestTime))){
+    		return Result.build(401, "请求已经超时");
+    	}
+    	// 判断签名
+		Map<String, String> signMap = new HashMap<String, String>();
+		signMap.put("rId", rId);
+		signMap.put("requtestTime", requtestTime);
+		String signResult = signTool.sign(signMap);
+		
+		if(!sign.equalsIgnoreCase(signResult)){
+			return Result.build(401, "sign 签名有误");
+		}
+    	
+        try {
+            return this.userService.getGrant(rId);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+	
+    /**
+     * 查询流水
+     * @param storeId 需要 的查询店铺的id
+     * @param startDate  指定日期以后的 流水
+     * @return
+     */
+	@RequestMapping("/getDeal")
+	@ResponseBody
+	public Result getDeal(String storeId, String startDate, String endDate, String page, String pageSize, String sign,
+			String requtestTime) {
+		// 判断请求是否超时
+		if (isOutOfTime(Long.parseLong(requtestTime))) {
+			return Result.build(401, "请求已经超时");
+		}
+    	
+    	// 判断签名
+		Map<String, String> signMap = new HashMap<String, String>();
+		signMap.put("storeId", storeId);
+		signMap.put("startDate", startDate);
+		signMap.put("endDate", endDate);
+		signMap.put("page", page);
+		signMap.put("pageSize", pageSize);
+		signMap.put("requtestTime", requtestTime);
+		String signResult = signTool.sign(signMap);
+		
+		if(!sign.equalsIgnoreCase(signResult)){
+			return Result.build(401, "sign 签名有误");
+		}
+			
+        try {
+           // return this.dealService.getDetailBySerialNum(serialNum);
+        	return this.dealService.getDealByGiveDateAndStoreID(storeId ,startDate,endDate, page, pageSize);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    /**
+     * 更新商品的库存
+     * @param goods
+     * @return
+     */
+    @RequestMapping("/updateInventory")
+    @ResponseBody
+    public Result updateInventory(String id,String inventory,String sign,String requtestTime) {
+    	// 判断请求是否超时 
+    	if(isOutOfTime(Long.parseLong(requtestTime))){
+    		return Result.build(401, "请求已经超时");
+    	}
+    	
+    	// 判断签名
+		Map<String, String> signMap = new HashMap<String, String>();
+		signMap.put("id", id);
+		signMap.put("inventory", inventory);
+		signMap.put("requtestTime", requtestTime);
+		String signResult = signTool.sign(signMap);
+		
+		if(!sign.equalsIgnoreCase(signResult)){
+			return Result.build(401, "sign 签名有误");
+		}
+    	
+    	//　这个两个字段必须有，否则无法更新
+    	if(id==null||inventory==null){
+    		return Result.build(500, "更新库存失败，原因：参数不对");
+    	}
+    	
+    	long startTime = System.currentTimeMillis();
+    	
+    	// 封装成对象
+    	Goods goods = new Goods();
+    	goods.setId(Long.parseLong(id));
+    	goods.setInventory(Integer.parseInt(inventory));
+    	
+    	// 执行更新
+    	Result result = inventoryService.updateInventory(goods);
+    	long endTime = System.currentTimeMillis();
+    	
+    	System.out.println("耗时："+(endTime-startTime)+"ms");
+    	
+    	return result;
+    }
+    
+    /**
+     * 查询更新的商品 信息
+     * @param storeId 需要查询的店铺
+     * @param Date 指定日期以后的 更新的商品的信息
+     * @return
+     */
+    @RequestMapping("/getGoods")
+    @ResponseBody
+	public Result getGoods(String storeId, String startDate, String endDate, String page, String pageSize, String sign,
+			String requtestTime) {
+
+		// 判断请求是否超时
+		if (isOutOfTime(Long.parseLong(requtestTime))) {
+			return Result.build(401, "请求已经超时");
+		}
+
+		// 判断签名
+		Map<String, String> signMap = new HashMap<String, String>();
+		signMap.put("storeId", storeId);
+		signMap.put("startDate", startDate);
+		signMap.put("endDate", endDate);
+		signMap.put("page", page);
+		signMap.put("pageSize", pageSize);
+		signMap.put("requtestTime", requtestTime);
+		String signResult = signTool.sign(signMap);
+		
+		if(!sign.equalsIgnoreCase(signResult)){
+			return Result.build(401, "sign 签名有误");
+		}
+        try {
+           // return this.dealService.getDetailBySerialNum(serialNum);
+        	return this.goodsService.getGoodsByGiveDateAndStoreID(storeId , startDate,endDate,Integer.parseInt(page),Integer.parseInt(pageSize));
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    /**
+     * 判断发出请求的时间是否已经超时（true 表示超时 FALSE 表示没有超时）
+     * 如果时间超过5分钟，就是超时，没有超过 就是没有超时
+     * @return TRUE表示超时，FALSE表示没有超时 
+     */
+    public boolean isOutOfTime(Long requestTime){
+    	long nowTime = new Date().getTime();
+    	if(nowTime - requestTime < 1000*60*5 && nowTime - requestTime > -1000*60*5){
+    		return false;
+    	}
+		return true;
+    }
+    
+
+}

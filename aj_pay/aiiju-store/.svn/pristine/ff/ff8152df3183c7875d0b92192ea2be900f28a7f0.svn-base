@@ -1,0 +1,1039 @@
+package com.aiiju.store.service.impl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.JPushUtil;
+import com.aiiju.common.util.JsonUtils;
+import com.aiiju.mapper.JPushEquipmentAuthMapper;
+import com.aiiju.mapper.JPushMapper;
+import com.aiiju.mapper.JPushPhoneAuthMapper;
+import com.aiiju.mapper.JpushMessageMapper;
+import com.aiiju.pojo.JPush;
+import com.aiiju.pojo.JPushPhoneAuth;
+import com.aiiju.pojo.JpushMessage;
+import com.aiiju.store.service.JPushService;
+
+import cn.jpush.api.utils.StringUtils;
+
+/**
+ * 
+ * @ClassName JPushServiceImpl
+ * @Description 按手机账号 和手机类型 校验登录情况；
+ *              一，按手机类型（1，一般情况下，一个账号只能在一个设备中登录，若有其他设备也登录该账号，则前者会被挤掉；
+ *              ,2，特殊情况下，一个账号可以同时登录某类型设备，比如商米pos机，该账号在所有的商米pos设备都允许登录，但在其他设备中，
+ *              仍然不能多台同时登录,3，更特殊情况是 用某设备强制不能登录， 比如，限制了iphone6 plus
+ *              的设备不能登录，那么所有通过在iphone6 plus上登录的账号，都将不可登录，登录之后就立马下线） 二
+ *              按手机账号（1，一般情况下，一个账号只能在一个设备中登录，若有其他设备也登录该账号，则前一个登录者会被挤掉；
+ *              ,2，特殊情况下，一个账号可以同时登录多个设备；3，更特殊情况是强制不能登录，
+ *              比如，限制了18257128923不能登录，那么该账号就禁止登录了） 三，两者校验，以先手机账号校验优先级最高，即，如果该账号
+ * @author zong
+ * @CreateDate 2017年8月7日 上午9:49:11
+ */
+@Service("jpushService")
+public class JPushServiceImpl implements JPushService {
+
+	private static Logger logger = Logger.getLogger(JPushServiceImpl.class);
+
+	@Autowired
+	private JPushMapper jpushMapper;
+	
+	@Autowired
+	private JpushMessageMapper jpushMessageMapper;
+
+	@Autowired
+	private JPushEquipmentAuthMapper jPushEquipmentAuthMapper;
+
+	@Autowired
+	private JPushPhoneAuthMapper jPushPhoneAuthMapper;
+
+	@Value("${REDIS_USER_SESSION_KEY}")
+	private String REDIS_USER_SESSION_KEY;
+
+	@Value("${REDIS_USER_TOKEN_KEY}")
+	private String REDIS_USER_TOKEN_KEY;
+
+	@Value("${PHONE_TYPE}")
+	private String PHONE_TYPE;
+	
+	
+
+	/**
+	 * 
+	 * @Description 按配置的账号登录权限，校验该手机是否允许 同账号多个该设备 同时登录，或禁止登录等等 具体如下： 通过
+	 *              phone_auth_type 字段 ，检验该账号的登录受限情况：
+	 *              phone_auth_type=0,禁止登录，phone_auth_type=1，共享账号（该账号可同时登录设备，
+	 *              不会挤掉，不受任何限制就能登录）； phone_auth_type=2
+	 *              ，一般账号（登录互斥）；phone_auth_type=3，部分可登录（在允许的设备中共享账号）；
+	 *              phone_auth_type=4，部分不可登录（在不允许的设备中禁止登录）；
+	 *              phone_auth_type=5，仅自己登录（一旦登录，别的登录者将无法登录，退出后，在其他设备才可登录，此类型慎用,
+	 *              非特殊情况不要用哈，哈哈哈）
+	 * 
+	 *              如果 phone_auth_type =2 ， 获取is_equipment_auth_type 中的值，
+	 *              检测是否还要检测登录设备的登录权限；如果is_equipment_auth_type=
+	 *              1将进入authByEquipmentType(jpush)方法检测，如果为0，
+	 *              不再执行authByEquipmentType(jpush)方法检测 如果 phone_auth_type =3 ，
+	 *              获取allow_equipment_type 中的值， 在这些设备中，共享账号 如果 phone_auth_type
+	 *              =4 ， 获取not_allow_equipment_type 中的值， 在这些设备中，该账号 禁止登录
+	 * 
+	 *              如果 phone_auth_type=5， 此情况很特殊，不要乱用
+	 * @param jpush
+	 * @return
+	 * @return Result
+	 */
+	public Result authByPhone(JPush jpush, JPushPhoneAuth jPushPhoneAuth) {
+
+		// 获取当前的（即登录用户）操作员编号 和设备号，商店号
+		String current_phone = jpush.getPhone();
+		String current_operatiorid = jpush.getOperatorId();
+		String current_equipmentCode = jpush.getEquipmentCode();
+		String current_storeID = jpush.getStoreId();
+		String current_phoneTpye = jpush.getPhoneType();
+		String current_phoneHostName = jpush.getPhoneHostName();
+
+		String phoneAuthType = jPushPhoneAuth.getPhoneAuthType();
+		String isEquipmentAuthType = jPushPhoneAuth.getIsEquipmentAuthType();
+		String allowEquipmentType = jPushPhoneAuth.getAllowEquipmentType();
+		String notAllowEquipmentType = jPushPhoneAuth.getNotAllowEquipmentType();
+
+		if ("0".equals(phoneAuthType)) {
+			String msg = "该账号被冻结，若有疑问，请联系客服";
+			
+			jpush.setMsg(msg);
+			jpush.setMsgType(JPushUtil.NOLOGIN);
+			jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+			
+			if ("androidT1".equals(current_phoneTpye)) {
+				JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), "该账号被冻结，若有疑问，请联系客服",
+						JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+			} else {
+				JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), "该账号被冻结，若有疑问，请联系客服",
+						JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+			}
+
+			return Result.success("该账号被冻结，若有疑问，请联系客服");
+
+		} else {
+
+			JPush jpushDB = this.jpushMapper.getJpushByEquipmentCode(current_equipmentCode);
+			if (jpushDB == null) {
+				logger.info(current_phone + "【" + "设备号：[" + current_equipmentCode + "]】是首次登录系统，将其存入数据库");
+
+				// 直接把此账号及设备信息全部录入数据库表
+				JPush jpushAdd = new JPush();
+				jpushAdd.setPhone(current_phone);
+				jpushAdd.setEquipmentCode(current_equipmentCode);
+				jpushAdd.setCreateDate(new Date());
+				jpushAdd.setPhoneType(current_phoneTpye);
+				jpushAdd.setStoreId(current_storeID);
+				jpushAdd.setOperatorId(current_operatiorid);
+				jpushAdd.setPhoneType(current_phoneTpye);
+				jpushAdd.setStatus("1");
+				jpushAdd.setModifyDate(new Date());
+				jpushAdd.setPhone(current_phone);
+				jpushAdd.setPhoneHostName(current_phoneHostName);
+
+				this.jpushMapper.add(jpushAdd);
+
+				if ("1".equals(phoneAuthType)) {
+					logger.info("--->该账号设置的登录权限【1】是可共享账号，可以同时登录多个设备");
+
+				} else if ("2".equals(phoneAuthType)) {
+
+					if ("1".equals(isEquipmentAuthType)) {
+						logger.info("--->该账号设置的登录权限【2-1】是一般权限，但要进一步进行设备类型登录检测");
+						authByEquipmentType(jpush);
+
+					} else {
+						logger.info("--->该账号设置的登录权限【2-0】是一般权限，但不再进行设备类型登录检测");
+
+						// 检测已经登录该账号的 登录权限
+						List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+						if (ListJpush.size() > 0) {
+							for (JPush jPush2 : ListJpush) {
+								if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+										&& jPush2.getStatus().equals("1")) {
+
+									String msg = "检测该账号在\""+current_phoneHostName+"\"设备上登录,此设备已退出,请确保是本人操作";
+									jPush2.setMsg(msg);
+									jPush2.setMsgType(JPushUtil.NOLOGIN);
+									jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+									if ("androidT1".equals(jPush2.getPhoneType())) {
+										JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+												msg,
+												JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+									} else {
+										JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+												msg,
+												JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+									}
+									logger.info("已将设备：【" + jPush2.getPhoneHostName()+"<->"+jPush2.getEquipmentCode() + "】更为下线状态");
+									jPush2.setStatus("0");
+									this.jpushMapper.updateStatus(jPush2);
+
+								}
+							}
+						}
+					}
+				} else if ("3".equals(phoneAuthType)) {
+					logger.info("--->该账号设置的登录权限【3】是部分可登录（在设置允许的设备中可共享账号），可共享账号的设备：" + allowEquipmentType);
+					boolean isAllow = false;
+					
+					
+					if(allowEquipmentType!=null){
+						String b[] = allowEquipmentType.split(",");
+						for (int i = 0; i < b.length; i++) {
+							if (current_phoneTpye.equals(b[i])) {
+								isAllow = true;
+							}
+						}
+					}
+
+					if (isAllow) {
+						logger.info("--->当前登录设备("+current_phoneTpye+")是可共享设备，可登录。");
+					} else {
+						logger.info("--->当前登录设备("+current_phoneTpye+")不是共享设备，故不能上线，将此登录者下线");
+
+						String msg = "该类型设备已被限制登录，若有疑问，请联系客服";
+						
+					
+						jpush.setMsg(msg);
+						jpush.setMsgType(JPushUtil.NOLOGIN);
+						jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+						
+						if ("androidT1".equals(current_phoneTpye)) {
+							JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						} else {
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						}
+						logger.info("已将设备：【" + jpush.getPhoneHostName()+"<->"+jpush.getEquipmentCode() + "】更为下线状态");
+						jpushAdd.setStatus("0");
+						this.jpushMapper.updateStatus(jpushAdd);
+
+					}
+
+					// 检测已经登录该账号的 登录权限
+					List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+					if (ListJpush.size() > 0) {
+						for (JPush jPush2 : ListJpush) {
+							if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+									&& jPush2.getStatus().equals("1")) {
+
+								String phoneTypeDB = jPush2.getPhoneType();
+								
+								if(allowEquipmentType!=null){
+									String bb[] = allowEquipmentType.split(",");
+									for (int i = 0; i < bb.length; i++) {
+										if (phoneTypeDB.equals(bb[i])) {
+										} else {
+											
+											String msg = "该类型设备已被限制登录，若有疑问，请联系客服";
+											
+											jPush2.setMsg(msg);
+											jPush2.setMsgType(JPushUtil.NOLOGIN);
+											jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+											
+											if ("androidT1".equals(jPush2.getPhoneType())) {
+												JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											} else {
+												JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											}
+											logger.info("已将设备：【" + jPush2.getPhoneHostName()+"<->"+jPush2.getEquipmentCode() + "】更为下线状态");
+											jPush2.setStatus("0");
+											this.jpushMapper.updateStatus(jPush2);
+
+										}
+									}
+								}
+							}
+						}
+					}
+
+				} else if ("4".equals(phoneAuthType)) {
+					logger.info("--->该账号设置的登录权限【4】是部分设备不可登录（在设置不允许的设备中不可登录），（不可登录的设备有：" + notAllowEquipmentType
+							+ "），当前登录设备：" + current_phoneTpye);
+					boolean isNotAllow = false;
+					String msg = "该类型设备已被限制登录，若有疑问，请联系客服";
+					if(notAllowEquipmentType!=null){		
+						
+					String b[] = notAllowEquipmentType.split(",");
+					for (int i = 0; i < b.length; i++) {
+						if (current_phoneTpye.equals(b[i])) {
+							isNotAllow = true;
+						}
+					}}
+			
+					if (isNotAllow) {
+						logger.info("--->当前登录设备是不可登录设备，故不能上线，将此登录者下线");
+						
+						jpush.setMsg(msg);
+						jpush.setMsgType(JPushUtil.NOLOGIN);
+						jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+						
+						
+						if ("androidT1".equals(current_phoneTpye)) {
+							JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						} else {
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						}
+						logger.info("已将设备：【" + jpush.getPhoneHostName()+"<->"+jpush.getEquipmentCode() + "】更为下线状态");
+						jpushAdd.setStatus("0");
+						this.jpushMapper.updateStatus(jpushAdd);
+
+					} else {
+						logger.info("--->当前登录设备是不在不可登录设备之列，故能上线");
+
+					}
+
+					// 检测已经登录该账号的 登录权限
+					List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+					if (ListJpush.size() > 0) {
+						for (JPush jPush2 : ListJpush) {
+							if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+									&& jPush2.getStatus().equals("1")) {
+
+								String phoneTypeDB = jPush2.getPhoneType();
+								
+								
+								if(notAllowEquipmentType!=null){		
+									
+									String bb[] = notAllowEquipmentType.split(",");
+									for (int i = 0; i < bb.length; i++) {
+										if (phoneTypeDB.equals(bb[i])) {
+											
+											jPush2.setMsg(msg);
+											jPush2.setMsgType(JPushUtil.NOLOGIN);
+											jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+											
+											if ("androidT1".equals(jPush2.getPhoneType())) {
+												JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											} else {
+												JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											}
+											logger.info("已将设备：【" + jPush2.getPhoneHostName()+"<->"+jPush2.getEquipmentCode() + "】更为下线状态");
+											jPush2.setStatus("0");
+											this.jpushMapper.updateStatus(jPush2);
+
+										}
+									}
+								}
+							}
+						}
+					}
+
+				} else if ("5".equals(phoneAuthType)) {
+					logger.info("--->该账号设置的登录权限【5】是仅允许账号同时在线一位，如有登录者，则本次无法登录");
+
+					List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+					boolean isHas = false;
+					StringBuffer sb = new StringBuffer();
+					StringBuffer sb1 = new StringBuffer();
+					if (ListJpush.size() > 0) {
+						for (JPush jPush2 : ListJpush) {
+							if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+									&& jPush2.getStatus().equals("1")) {
+								isHas = true;
+								sb.append(current_phone + "【" + jPush2.getEquipmentCode() + "】，");
+								sb1.append(jPush2.getPhoneHostName()+" ");
+							}
+						}
+					}
+
+					if (isHas) {
+						logger.info("--->检测到该账号已有登录者,-->" + sb.toString() + ",若想登录，必须让已登录者先退出登录，故将此下线");
+                       String msg = "登录受限，该账号已在\""+sb1.toString()+"\"登录，若有疑问，请联系客服";
+                       
+   					jpush.setMsg(msg);
+   					jpush.setMsgType(JPushUtil.NOLOGIN);
+					jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+                       
+						if ("androidT1".equals(current_phoneTpye)) {
+							JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						} else {
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						}
+						logger.info("已将设备：【" + jpushAdd.getPhoneHostName()+"<->"+jpushAdd.getEquipmentCode() + "】更为下线状态");
+						jpushAdd.setStatus("0");
+						this.jpushMapper.updateStatus(jpushAdd);
+					} else {
+						logger.info("--->检测到该账号没有登录者，故可以登录。");
+					}
+				} else {
+				}
+			}else{
+				jpushDB.setPhone(current_phone);
+				jpushDB.setPhoneHostName(current_phoneHostName);
+				jpushDB.setOperatorId(current_operatiorid);
+				jpushDB.setStatus("1");
+				jpushDB.setModifyDate(new Date());
+				this.jpushMapper.updateStatus(jpushDB);
+				
+				if ("1".equals(phoneAuthType)) {
+					logger.info(current_phone + "【" + "设备号：[" + current_equipmentCode + "]】,该设备不是首次登录");
+					
+					if (jpushDB.getOperatorId() == current_operatiorid) {
+						logger.info("该登录账号属于可共存账号； 且与上次登录账号一致");
+			
+
+					} else {
+						logger.info("该登录账号属于可共存账号； 且与上次登录账号不一致，更新本次账号");
+		
+					}
+
+				} else if("2".equals(phoneAuthType)){
+					
+					String msg = "检测该账号在\""+current_phoneHostName+"\"设备上登录,此设备已退出,请确保是本人操作";
+					
+					
+					if ("1".equals(isEquipmentAuthType)) {
+						logger.info("--->该账号设置的登录权限【2-1】是一般权限，但要进一步进行设备类型登录检测");
+						authByEquipmentType(jpush);
+
+					} else {
+						logger.info("--->该账号设置的登录权限【2-0】是一般权限，但不再进行设备类型登录检测");
+
+						// 检测已经登录该账号的 登录权限
+						List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+						if (ListJpush.size() > 0) {
+							for (JPush jPush2 : ListJpush) {
+								if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+										&& jPush2.getStatus().equals("1")) {
+
+									
+									jPush2.setMsg(msg);
+									jPush2.setMsgType(JPushUtil.NOLOGIN);
+									jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+									
+									if ("androidT1".equals(jPush2.getPhoneType())) {
+										JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+												msg,
+												JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+									} else {
+										JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+												msg,
+												JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+									}
+									logger.info("已将设备：【" + jPush2.getPhoneHostName()+"<->"+jPush2.getEquipmentCode() + "】更为下线状态");
+									jPush2.setStatus("0");
+									this.jpushMapper.updateStatus(jPush2);
+
+								}
+							}
+						}
+					}
+				}else if("3".equals(phoneAuthType)){
+					logger.info("--->该账号设置的登录权限【3】是部分可登录（在设置允许的设备中可共享账号），可共享账号的设备：" + allowEquipmentType);
+					boolean isAllow = false;
+					 String msg = "该类型设备已限制登录，若有疑问，请联系客服";
+					if(allowEquipmentType!=null){
+						String b[] = allowEquipmentType.split(",");
+						for (int i = 0; i < b.length; i++) {
+							if (current_phoneTpye.equals(b[i])) {
+								isAllow = true;
+							}
+						}
+					}
+					
+
+					if (isAllow) {
+						logger.info("--->当前登录设备("+current_phoneTpye+")是可共享设备，可登录。");
+					} else {
+						logger.info("--->当前登录设备("+current_phoneTpye+")不是共享设备，故不能上线，将此登录者下线");
+                      
+						jpush.setMsg(msg);
+						jpush.setMsgType(JPushUtil.NOLOGIN);
+						jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+						
+						if ("androidT1".equals(current_phoneTpye)) {
+							JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						} else {
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						}
+						logger.info("已将设备：【" + jpushDB.getPhoneHostName()+"<->"+jpushDB.getEquipmentCode() + "】更为下线状态");
+						jpushDB.setOperatorId(current_operatiorid);
+						jpushDB.setStatus("0");
+						jpushDB.setModifyDate(new Date());
+						this.jpushMapper.updateStatus(jpushDB);
+
+					}
+
+					// 检测已经登录该账号的 登录权限
+					List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+					if (ListJpush.size() > 0) {
+						for (JPush jPush2 : ListJpush) {
+							if (!jPush2.getEquipmentCode().equals(current_equipmentCode)&& jPush2.getStatus().equals("1")) {
+
+								String phoneTypeDB = jPush2.getPhoneType();
+								
+								if(allowEquipmentType!=null){
+									String bb[] = allowEquipmentType.split(",");
+									for (int i = 0; i < bb.length; i++) {
+										if (phoneTypeDB.equals(bb[i])) {
+										} else {
+											
+											
+											jPush2.setMsg(msg);
+											jPush2.setMsgType(JPushUtil.NOLOGIN);
+											jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+
+											if ("androidT1".equals(jPush2.getPhoneType())) {
+												JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											} else {
+												JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											}
+											logger.info("已将设备：【" + jPush2.getPhoneHostName()+"<->"+jPush2.getEquipmentCode() + "】更为下线状态");
+											jPush2.setStatus("0");
+											this.jpushMapper.updateStatus(jPush2);
+
+										}
+									}
+								}
+							}
+						}
+					}
+
+				}else if("4".equals(phoneAuthType)){
+					logger.info("--->该账号设置的登录权限【4】是部分设备不可登录（在设置不允许的设备中不可登录），（不可登录的设备有：" + notAllowEquipmentType
+							+ "），当前登录设备：" + current_phoneTpye);
+					boolean isNotAllow = false;
+					
+					if(notAllowEquipmentType!=null){
+						String b[] = notAllowEquipmentType.split(",");
+						for (int i = 0; i < b.length; i++) {
+							if (current_phoneTpye.equals(b[i])) {
+								isNotAllow = true;
+							}
+						}
+					}
+					
+					String msg = "该类型设备已限制登录，若有疑问，请联系客服";
+		
+					if (isNotAllow) {
+						logger.info("--->当前登录设备是不可登录设备，故不能上线，将此登录者下线");
+						
+						
+						jpush.setMsg(msg);
+						jpush.setMsgType(JPushUtil.NOLOGIN);
+						jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+						
+						
+						if ("androidT1".equals(current_phoneTpye)) {
+							JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						} else {
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						}
+						logger.info("已将设备：【" + jpushDB.getPhoneHostName()+"<->"+jpushDB.getEquipmentCode() + "】更为下线状态");
+						jpushDB.setOperatorId(current_operatiorid);
+						jpushDB.setStatus("0");
+						jpushDB.setModifyDate(new Date());
+						this.jpushMapper.updateStatus(jpushDB);
+
+					} else {
+						logger.info("--->当前登录设备是不在不可登录设备之列，故能上线");
+
+					}
+
+					// 检测已经登录该账号的 登录权限
+					List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+					if (ListJpush.size() > 0) {
+						for (JPush jPush2 : ListJpush) {
+							if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+									&& jPush2.getStatus().equals("1")) {
+
+								String phoneTypeDB = jPush2.getPhoneType();
+								if(notAllowEquipmentType!=null){
+									String bb[] = notAllowEquipmentType.split(",");
+									for (int i = 0; i < bb.length; i++) {
+										if (phoneTypeDB.equals(bb[i])) {
+	
+											jPush2.setMsg(msg);
+											jPush2.setMsgType(JPushUtil.NOLOGIN);
+											jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+											
+											if ("androidT1".equals(jPush2.getPhoneType())) {
+												JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											} else {
+												JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+														msg,
+														JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+											}
+											logger.info("已将设备：【" + jPush2.getPhoneHostName()+"<->"+jPush2.getEquipmentCode() + "】更为下线状态");
+											jPush2.setStatus("0");
+											this.jpushMapper.updateStatus(jPush2);
+
+										}
+									}
+								}
+							}
+						}
+					}
+
+				}else if("5".equals(phoneAuthType)){
+					
+					
+					
+					logger.info("--->该账号设置的登录权限【5】是仅允许账号同时在线一位，如有登录者，则本次无法登录");
+
+					List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+					boolean isHas = false;
+					StringBuffer sb = new StringBuffer();
+					StringBuffer sb1 = new StringBuffer();
+					if (ListJpush.size() > 0) {
+						for (JPush jPush2 : ListJpush) {
+							if (!jPush2.getEquipmentCode().equals(current_equipmentCode)
+									&& jPush2.getStatus().equals("1")) {
+								isHas = true;
+								sb.append(current_phone + "【" + jPush2.getEquipmentCode() + "】，");
+								sb1.append(jPush2.getPhoneHostName()+" ");
+								
+							}
+						}
+					}
+					String msg = "登录受限，该账号已在\""+sb1.toString()+"\"登录，若有疑问，请联系客服";
+					if (isHas) {
+						logger.info("--->检测到该账号已有登录者,-->" + sb.toString() + ",若想登录，必须让已登录者先退出登录，故将此下线");
+
+						jpush.setMsg(msg);
+						jpush.setMsgType(JPushUtil.NOLOGIN);
+						jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+						
+						
+						if ("androidT1".equals(current_phoneTpye)) {
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode),msg ,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						} else {
+						
+							JPushUtil.sendMsg(Arrays.asList(current_equipmentCode),msg,
+									JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+						}
+						logger.info("已将设备：【" + jpushDB.getPhoneHostName()+"<->"+jpushDB.getEquipmentCode() + "】更为下线状态");
+						jpushDB.setOperatorId(current_operatiorid);
+						jpushDB.setStatus("0");
+						jpushDB.setModifyDate(new Date());
+						this.jpushMapper.updateStatus(jpushDB);
+					} else {
+						logger.info("--->检测到该账号没有登录者，故可以登录。");
+					}
+				}
+				
+				
+				
+			}
+		}
+
+		return Result.success();
+	}
+
+	/**
+	 * 
+	 * @Description 按该账号的登录权限 ，校验该账号是否允许 同账号多个该设备 同时登录 或
+	 *              强制不可登录（黑名单）或强制允许登录（一账号，多设备同时登录）
+	 * @param jpush
+	 * @return
+	 * @return Result
+	 */
+	public Result authByEquipmentType(JPush jpush) {
+
+		// 获取当前的（即登录用户）操作员编号 和设备号，商店号
+		String current_phone = jpush.getPhone();
+		String current_operatiorid = jpush.getOperatorId();
+		String current_equipmentCode = jpush.getEquipmentCode();
+		String current_storeID = jpush.getStoreId();
+		String current_phoneTpye = jpush.getPhoneType();
+		String current_phoneHostName = jpush.getPhoneHostName();
+		
+		int canLogin = 0;
+
+		String authType = jPushEquipmentAuthMapper.getAuthTypeByPhoneType(current_phoneTpye);
+
+		if ("3".equals(authType)) {
+            logger.info("该设备被禁止登录");
+			
+			String msg = "该设备被禁止登录，若有疑问，请联系客服";
+			
+			
+			jpush.setMsg(msg);
+			jpush.setMsgType(JPushUtil.NOLOGIN);
+			jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jpush));
+			
+			
+			canLogin = 3;
+			if ("androidT1".equals(current_phoneTpye)) {
+
+				JPushUtil.sendMsgHD(Arrays.asList(current_equipmentCode), msg,
+						JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+			} else {
+				JPushUtil.sendMsg(Arrays.asList(current_equipmentCode), msg,
+						JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+			}
+
+		} else if ("1".equals(authType)) {
+            logger.info("登录的是可共存账号的设备，设备：" + current_phoneTpye);
+			canLogin = 1;// 当前设备，同账号可同时登录
+
+		} else {
+
+			logger.info("登录的是一般设备，不可共存账号的设备，设备：" + current_phoneTpye);
+			canLogin = 2;// 当前设备，同账号不可同时登录
+		}
+
+		/**
+		 * 1， 查询current_equipmentCode的设备是否（jpush表中）存在： 不存在，存入Jpush表（
+		 * 数据equipmentCode，其他先为空）； 再根据传入current_operatiorid
+		 * 查询，是否已有status=1（在线）的operatiorid；如果有，
+		 * (检查是否phoneType中的设备，如果是，不需通知，如果不是：)将其status更新为0，并消息推送，如果没有将前台传入的数据，
+		 * 更新到刚才插入Jpush，字段为equipmentCode的记录中 存在 ， 根据current_operatiorid
+		 * 查询，是否已有status=1（在线）的其他operatiorid；如果有，
+		 * (检查是否phoneType中的设备，如果是，不需通知，如果不是：)将其status更新为0，并消息推送，
+		 * 并将设备号为current_equipmentCode的这条记录更新Status=1,operatiorid=
+		 * current_operatiorid,storeid=current_storeID
+		 */
+
+		// String equipmentCodeFromDB =
+		// this.jpushMapper.getByEquipmentCode(current_equipmentCode);
+		JPush jpushDB = this.jpushMapper.getJpushByEquipmentCode(current_equipmentCode);
+
+		if (jpushDB == null || (jpushDB != null && StringUtils.isEmpty(jpushDB.getEquipmentCode()))) {
+
+			logger.info(current_phone + "【" + "设备号：[" + current_equipmentCode + "]】是首次登录系统，将其存入数据库");
+
+			if (canLogin == 1) {
+				logger.info("数据库中没有此equipmentCode的记录：插入新数据，备注：该设备是可共存设备，同账号可以同时登录");
+				// 直接把此账号及设备信息全部录入数据库表
+				JPush jpushAdd = new JPush();
+				jpushAdd.setPhone(current_phone);
+				jpushAdd.setEquipmentCode(current_equipmentCode);
+				jpushAdd.setCreateDate(new Date());
+				jpushAdd.setPhoneType(current_phoneTpye);
+				jpushAdd.setStoreId(current_storeID);
+				jpushAdd.setOperatorId(current_operatiorid);
+				jpushAdd.setPhoneType(current_phoneTpye);
+				jpushAdd.setStatus("1");
+				jpushAdd.setModifyDate(new Date());
+				jpushAdd.setPhone(current_phone);
+				jpushAdd.setPhoneHostName(current_phoneHostName);
+				this.jpushMapper.add(jpushAdd);
+			} else {
+
+				// 录入设备信息后要查询该登录账号是否有其他登录者，没有其他登录者，更新完善当前账号及设备信息；
+				// 如果该账号已有其他设备的登录，则检查此设备的登录设备权限，如果也是共存，则不用其下线，如果不可共存，则下线
+
+				JPush jpushAdd = new JPush();
+				jpushAdd.setPhone(current_phone);
+				jpushAdd.setEquipmentCode(current_equipmentCode);
+				jpushAdd.setCreateDate(new Date());
+				jpushAdd.setPhoneType(current_phoneTpye);
+				jpushAdd.setPhoneHostName(current_phoneHostName);
+				this.jpushMapper.add(jpushAdd);
+
+				List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid); // 查询当前账号的信息，为了查看是否已有登录者
+
+				if (ListJpush.size() > 0) {
+					logger.info(current_phone + "【该账号：【" + current_operatiorid + "】不是第一次登录系统，但该设备号【"
+							+ current_equipmentCode + "】首次登陆】");
+					for (JPush jPush2 : ListJpush) {
+						if ("1".equals(jPush2.getStatus())) {
+
+							String jPush2authType = jPushEquipmentAuthMapper
+									.getAuthTypeByPhoneType(jPush2.getPhoneType()); // 当前在线的设备的权限
+
+							if ("1".equals(jPush2authType)) {
+								// 该账号已存在一个登录者，但 该设备可共存，所以不下线
+
+								logger.info("检查到该账号");
+
+								logger.info("检查到该账号【" + jPush2.getPhone() + "】：【" + current_operatiorid + "】正在被设备：【"
+										+ jPush2.getEquipmentCode() + "】登录使用，但由于这个设备【" + jPush2.getPhoneType()
+										+ "】也属于可共存设备，所以不下线");
+							} else {
+
+								logger.info("检查到该账号：【" + current_operatiorid + "】正在被设备：【" + jPush2.getEquipmentCode()
+										+ "】登录使用，故将设备号为：【" + jPush2.getEquipmentCode() + "】下线");
+								jPush2.setStatus("0");
+								jPush2.setModifyDate(new Date());
+								this.jpushMapper.updateStatus(jPush2);
+								logger.info("已将设备：【" + jPush2.getEquipmentCode() + "】更为下线状态");
+
+								String msg = "检测该账号在\""+current_phoneHostName+"\"设备上登录,此设备已退出,请确保是本人操作";
+								
+								
+								jPush2.setMsg(msg);
+								jPush2.setMsgType(JPushUtil.NOLOGIN);
+								jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+								
+								if ("androidT1".equals(jPush2.getPhoneType())) {
+
+									JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),
+											msg,
+											JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+								} else {
+
+									JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+											msg,
+											JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+								}
+
+							}
+						}
+					}
+
+					JPush jpushnew = new JPush();
+					jpushAdd.setPhone(current_phone);
+					jpushnew.setStoreId(current_storeID);
+					jpushnew.setOperatorId(current_operatiorid);
+					jpushnew.setStatus("1");
+					jpushnew.setPhoneType(current_phoneTpye);
+					jpushnew.setModifyDate(new Date());
+					jpushnew.setEquipmentCode(current_equipmentCode);
+					jpushnew.setPhoneHostName(current_phoneHostName);
+					this.jpushMapper.updateStatus(jpushnew); // 补充这个新设备号的信息，使其为登录者
+				} else {
+
+					JPush jpushnew = new JPush();
+					jpushAdd.setPhone(current_phone);
+					jpushnew.setStoreId(current_storeID);
+					jpushnew.setOperatorId(current_operatiorid);
+					jpushnew.setStatus("1");
+					jpushnew.setPhoneType(current_phoneTpye);
+					jpushnew.setModifyDate(new Date());
+					jpushnew.setEquipmentCode(current_equipmentCode);
+					jpushnew.setPhoneHostName(current_phoneHostName);
+					this.jpushMapper.updateStatus(jpushnew); // 补充这个新设备号的信息，使其为登录者
+
+				}
+				logger.info("该账号：【" + current_operatiorid + "】首次登录系统，该设备号【" + current_equipmentCode + "】首次登陆");
+			}
+
+		} else {
+
+			if (canLogin == 1) {
+
+				if (jpushDB.getOperatorId() == current_operatiorid) {
+					logger.info("该登录设备属于可共存设备； 且与上次登录账号一致");
+
+					jpushDB.setStatus("1");
+					
+					jpushDB.setPhoneType(current_phoneTpye);
+
+					jpushDB.setEquipmentCode(current_equipmentCode);
+					jpushDB.setOperatorId(current_operatiorid);
+					jpushDB.setStoreId(current_storeID);
+					jpushDB.setModifyDate(new Date());
+					jpushDB.setPhoneHostName(current_phoneHostName);
+					this.jpushMapper.updateByEquipmentCode(jpushDB);
+					
+				//	this.jpushMapper.updateStatus(jpushDB);
+
+				} else {
+					logger.info("该登录设备属于可共存设备； 与上次登录账号不一致，更新本次账号");
+		             jpushDB.setStatus("1");
+					
+					jpushDB.setPhoneType(current_phoneTpye);
+
+					jpushDB.setEquipmentCode(current_equipmentCode);
+					jpushDB.setOperatorId(current_operatiorid);
+					jpushDB.setStoreId(current_storeID);
+					jpushDB.setModifyDate(new Date());
+					jpushDB.setPhoneHostName(current_phoneHostName);
+					this.jpushMapper.updateByEquipmentCode(jpushDB);
+				}
+
+			} else {
+
+				// 该设备 已存在，再查询 该设备的账号，直接更新该设备的登录账号为当前即可
+				List<JPush> ListJpush = this.jpushMapper.getListByOperatorId(current_operatiorid);
+				boolean flag = true;
+				for (JPush jPush2 : ListJpush) {
+
+					if ("1".equals(jPush2.getStatus()) && !current_equipmentCode.equals(jPush2.getEquipmentCode())) { // 不是当前设备登录的
+						flag = false;
+						String jPush2authType = jPushEquipmentAuthMapper.getAuthTypeByPhoneType(jPush2.getPhoneType());
+
+						if ("1".equals(jPush2authType)) {
+							// 该账号已存在一个登录者，但 该设备可共存，所以不下线
+							logger.info("检查到该账号：【" + current_operatiorid + "】正在被设备：【" + jPush2.getEquipmentCode()
+									+ "】登录使用，但由于该设备属于：【" + jPush2.getPhoneType() + "】可共存设备，所以不下线");
+						} else {
+
+							logger.info("检查到该账号：【" + current_operatiorid + "】正在被设备：【" + jPush2.getEquipmentCode()
+									+ "】登录使用，故将设备号为：【" + jPush2.getEquipmentCode() + "】下线");
+							jPush2.setStatus("0");
+							jPush2.setModifyDate(new Date());
+							this.jpushMapper.updateStatus(jPush2);
+							logger.info("已将设备：【" + jPush2.getEquipmentCode() + "】更为下线状态");
+							
+							String msg="检测该账号在\""+current_phoneHostName+"\"设备上登录,此设备已退出,请确保是本人操作";
+							
+							
+							
+							jPush2.setMsg(msg);
+							jPush2.setMsgType(JPushUtil.NOLOGIN);
+							jpushMessageMapper.saveJpushMessage(JpushMessage.formatJpush(jPush2));
+							
+							if ("androidT1".equals(jPush2.getPhoneType())) {
+
+								JPushUtil.sendMsgHD(Arrays.asList(jPush2.getEquipmentCode()),msg,JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+								
+								
+							} else {
+
+								JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),msg,JsonUtils.objectToJson(Result.build(200, msg, JPushUtil.NOLOGIN)));
+							}
+
+						}
+
+						// this.jpushMapper.updateStatus(jPush2);
+						//
+						// logger.info("检查到该账号：【"+current_operatiorid+"】已经被设备：【"+jPush2.getEquipmentCode()+"】登录，故将设备：【"+jPush2.getEquipmentCode()+"】上的该账号下线");
+						// JPushUtil.sendMsg(Arrays.asList(jPush2.getEquipmentCode()),
+						// "检测到您的账号在另一设备上登录,此设备已退出,请确保是本人操作",JsonUtils.objectToJson(Result.success(JPushUtil.KICK)));
+					}
+				}
+
+				// if(ListJpush.size()<1||flag){
+				// jpushDB.setStoreId(current_storeID);
+				// jpushDB.setPhoneType(current_phoneTpye);
+				// jpushDB.setOperatorId(current_operatiorid);
+				// jpushDB.setStatus("1");
+				// jpushDB.setModifyDate(new Date());
+				// this.jpushMapper.updateStatus(jpushDB);
+				// }
+
+				JPush jpushUpdate = new JPush();
+				jpushUpdate.setEquipmentCode(current_equipmentCode);
+				jpushUpdate.setOperatorId(current_operatiorid);
+				jpushUpdate.setStoreId(current_storeID);
+				jpushUpdate.setStatus("1");
+				jpushUpdate.setPhoneType(current_phoneTpye);
+				// jpushUpdate.setIsTest((byte)1);
+				jpushUpdate.setModifyDate(new Date());
+				jpushUpdate.setPhoneHostName(current_phoneHostName);
+				this.jpushMapper.updateByEquipmentCode(jpushUpdate);
+
+			}
+
+		}
+
+		return Result.success();
+	}
+
+	@Override
+	public synchronized Result save(JPush jpush) {
+
+		
+		if(jpush!=null&&jpush.getEquipmentCode()!=null){
+			jpushMessageMapper.deleteAllByEquipmentCode(jpush.getEquipmentCode());
+		}
+		
+		
+		/**
+		 * 
+		 * 先查询该登录账号的登录验证权限；authByPhone(jpush) 验证；
+		 * 如果此账号信息，则交由authByEquipmentType(jpush)验证
+		 * 
+		 */
+		String current_phone = jpush.getPhone();
+		String current_operatiorid = jpush.getOperatorId();
+		String current_equipmentCode = jpush.getEquipmentCode();
+		String current_storeID = jpush.getStoreId();
+		String current_phoneTpye = jpush.getPhoneType();
+		String current_phoneHostName = jpush.getPhoneHostName();
+
+		logger.info("传入参数：phone=【" + current_phone + "】operatiorid=【" + current_operatiorid + "】equipmentCode=【"
+				+ current_equipmentCode + "】storeID=【" + current_storeID + "】phoneTpye=【" + current_phoneTpye + "】current_phoneHostName=【" + current_phoneHostName + "】");
+
+		if(current_phoneHostName==null||(current_phoneHostName!=null&&"".equals(current_phoneHostName.trim()))){
+			logger.info("特别注意---该设备名称为空，将其设为默认值");
+			if(current_phoneTpye!=null){
+				jpush.setPhoneHostName(current_phoneTpye);
+			}else{
+				jpush.setPhoneHostName("其他");
+			}
+			
+		}
+		
+		JPushPhoneAuth jPushPhoneAuth = jPushPhoneAuthMapper.selectByPhone(current_phone);
+
+		if (jPushPhoneAuth == null) {
+       logger.info("----->该账号无特殊登录权限设置，------>将检测该登录设备的登录权限");
+			authByEquipmentType(jpush);
+		} else {
+			authByPhone(jpush, jPushPhoneAuth);
+		}
+		return Result.success();
+	}
+
+
+	@Override
+	public Result getNotReadMsgByEquipmentCode(String equipmentCode) {
+
+		List<JpushMessage> jpushMessage = jpushMessageMapper.selectNotReadByEquipmentCode(equipmentCode);
+		
+		List<Map<String,String>> list = new ArrayList<Map<String,String>>();
+		
+		for (JpushMessage jpushMessage2 : jpushMessage) {
+			
+			if(JPushUtil.NOLOGIN.equals(jpushMessage2.getMsgType())||
+			   JPushUtil.DELETECLERK.equals(jpushMessage2.getMsgType())||
+			  JPushUtil.UNBIND.equals(jpushMessage2.getMsgType())){
+				Map<String,String> map = new HashMap<String,String>();
+				String type = jpushMessage2.getMsgType();
+				String msg = jpushMessage2.getMsgInfo();
+				map.put("type", type);
+				map.put("msg", msg);
+			    list.add(map);
+			    
+			    jpushMessage2.setIsRead("1");
+			    jpushMessageMapper.update(jpushMessage2);
+				
+              }
+			
+		}
+	
+		
+		
+		return Result.success(list);
+	}
+
+
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.QqSubMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.QqSub" useGeneratedKeys="true"  keyProperty="id">
+		insert into qq_sub(sub_mch_id,store_id)
+		 values(#{subMchId},#{storeId})
+	</insert>
+	
+	<delete id="delete">
+		delete from qq_sub where id = #{id}
+	</delete>
+	
+	<delete id="deleteByStoreId">
+		delete from qq_sub where store_id = #{storeId}
+	</delete>
+	
+	<select id="getByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.QqSub">
+		select
+			id,sub_mch_id subMchId,store_id storeId
+		 from qq_sub where store_id = #{storeId}
+	</select>
+	
+
+</mapper>

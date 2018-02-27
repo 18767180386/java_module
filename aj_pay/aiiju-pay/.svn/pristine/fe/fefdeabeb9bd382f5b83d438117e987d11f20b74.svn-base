@@ -1,0 +1,7 @@
+
+#INVITE_URL=https://store.ecbao.cn/user/inviteUI
+#GETTOKEN_URL=http://16794ui705.iok.la:32542/user/inviteUI
+GETTOKEN_URL=https://store.ecbao.cn/sso/checkToken
+
+#通知 erp系统的的地址
+ERP_AJSYNOTIFY_URL= http://121.199.182.2/dsb/auther_ajsy/ajsyNotify

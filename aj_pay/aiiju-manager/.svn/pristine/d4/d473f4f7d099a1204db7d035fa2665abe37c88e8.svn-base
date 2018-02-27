@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.DiscountMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Discount" useGeneratedKeys="true"  keyProperty="id">
+		insert into discount(value,type,status,`condition`) value(#{value},#{type},#{status},#{condition})
+	</insert>
+	
+	
+	<select id="getById" parameterType="java.lang.Integer" resultType="com.aiiju.pojo.Discount">
+		select status from discount where id = #{id}
+	</select>
+	
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from discount where id = #{id}
+	</delete>
+	
+	<select id="getAllByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.Discount">
+		select
+			d.id,d.value,d.type,d.condition,d.status
+		 from discount d left join discount_shop ds on d.id = ds.discount_id
+		 left join shop p on ds.store_id = p.store_id
+		  where p.store_id = #{storeId}
+	</select>
+	
+   <select id="getSingleDiscountByStoreId" parameterType="java.util.Map" resultType="com.aiiju.pojo.Discount">
+		select
+			d.id,d.value,d.type,d.condition,d.status
+		 from discount d left join discount_shop ds on d.id = ds.discount_id and d.type=#{type} 
+
+		  where ds.store_id = #{storeId}
+	</select>
+
+
+
+
+	<!-- 批量插入 -->
+	<insert id="insertBatch" parameterType="java.util.ArrayList">
+		insert into discount_shop(discount_id,store_id) values
+		<foreach collection="list" item="obj" index="index" separator=",">  
+			(#{obj.discountId},#{obj.storeId})
+    	</foreach>  
+	</insert>
+	
+	<!-- 关联关系管理 -->
+	<delete id="deleteLink" parameterType="com.aiiju.pojo.DiscountShopLink">
+		delete from discount_shop where discount_id = #{discountId} and store_id = #{storeId}
+	</delete>
+	
+	<insert id="addLink" parameterType="com.aiiju.pojo.DiscountShopLink">
+		insert into discount_shop(discount_id,store_id) values(#{discountId},#{storeId})
+	</insert>
+</mapper>

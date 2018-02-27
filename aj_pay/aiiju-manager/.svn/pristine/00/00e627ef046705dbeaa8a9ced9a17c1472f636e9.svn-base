@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.AppAuthMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.AppAuth" useGeneratedKeys="true"  keyProperty="id">
+		insert into app_auth(app_auth_token,user_id,auth_app_id,expires_in,re_expires_in,app_refresh_token,store_id)
+		 values(#{appAuthToken},#{userId},#{authAppId},#{expiresIn},#{reExpiresIn},#{appRefreshToken},#{storeId})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.AppAuth">
+		update app_auth set app_auth_token=#{appAuthToken},user_id=#{userId},auth_app_id=#{auth_app_id},
+		expires_in=#{expiresIn},re_expires_in=#{reExpiresIn},app_refresh_token=#{appRefreshToken}
+		where id = #{id}
+	</update>
+	
+	
+	<sql id="selectSql">
+		id,app_auth_token,user_id,auth_app_id,expires_in,re_expires_in,app_refresh_token,store_id,modify_date
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.AppAuth" id="authMap">
+		<id column="id" property="id"/>
+		<result column="app_auth_token" property="appAuthToken" />
+		<result column="user_id" property="userId" />
+		<result column="auth_app_id" property="authAppId" />
+		<result column="expires_in" property="expiresIn" />
+		<result column="re_expires_in" property="reExpiresIn" />
+		<result column="app_refresh_token" property="appRefreshToken" />
+		<result column="store_id" property="storeId" />
+		<result column="modify_date" property="modifyDate" />
+	</resultMap>
+	
+	<select id="getByStoreId" parameterType="java.lang.String" resultMap="authMap">
+		select
+			<include refid="selectSql"></include>
+		 from app_auth where store_id = #{storeId}
+	</select>
+	
+
+	
+	<select id="getAppAuthList" parameterType="java.lang.String" resultType="com.aiiju.pojo.AppAuth">
+		select
+			<include refid="selectSql"></include>
+		 from app_auth where store_id = #{storeId} group by store_id 
+	</select>
+	
+
+</mapper>

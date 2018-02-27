@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.BookingManageSwitchMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.BookingManageSwitch" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="parent_store_id" property="parentStoreId" jdbcType="VARCHAR" />
+    <result column="store_id" property="storeId" jdbcType="VARCHAR" />
+    <result column="remind_status" property="remindStatus" jdbcType="VARCHAR" />
+    <result column="remind_time" property="remindTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, parent_store_id, store_id, remind_status, remind_time, update_time, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from booking_manage_switch
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  
+   <select id="getBookingManageSwitchByStoreId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from booking_manage_switch
+    where store_id = #{storeId}
+  </select>
+  
+
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from booking_manage_switch
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.aiiju.pojo.BookingManageSwitch" >
+    insert into booking_manage_switch (id, parent_store_id, store_id, 
+      remind_status, remind_time, update_time, 
+      create_time)
+    values (#{id,jdbcType=BIGINT}, #{parentStoreId,jdbcType=VARCHAR}, #{storeId,jdbcType=VARCHAR}, 
+      #{remindStatus,jdbcType=VARCHAR}, #{remindTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.aiiju.pojo.BookingManageSwitch" >
+    insert into booking_manage_switch
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="parentStoreId != null" >
+        parent_store_id,
+      </if>
+      <if test="storeId != null" >
+        store_id,
+      </if>
+      <if test="remindStatus != null" >
+        remind_status,
+      </if>
+      <if test="remindTime != null" >
+        remind_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="parentStoreId != null" >
+        #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="storeId != null" >
+        #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="remindStatus != null" >
+        #{remindStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="remindTime != null" >
+        #{remindTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.aiiju.pojo.BookingManageSwitch" >
+    update booking_manage_switch
+    <set >
+      <if test="parentStoreId != null" >
+        parent_store_id = #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="storeId != null" >
+        store_id = #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="remindStatus != null" >
+        remind_status = #{remindStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="remindTime != null" >
+        remind_time = #{remindTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.aiiju.pojo.BookingManageSwitch" >
+    update booking_manage_switch
+    set parent_store_id = #{parentStoreId,jdbcType=VARCHAR},
+      store_id = #{storeId,jdbcType=VARCHAR},
+      remind_status = #{remindStatus,jdbcType=VARCHAR},
+      remind_time = #{remindTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

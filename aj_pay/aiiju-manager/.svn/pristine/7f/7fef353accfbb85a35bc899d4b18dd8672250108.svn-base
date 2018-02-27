@@ -1,0 +1,38 @@
+package com.aiiju.dao;
+
+import java.util.Set;
+
+/**
+ * 
+ * @ClassName: JedisClient 
+ * @Description: redis客户端
+ * @author 小飞 
+ * @date 2016年11月16日 上午11:24:16 
+ *
+ */
+public interface JedisClient {
+
+	public String get(String key);
+	
+	public String set(String key, String value);
+	
+	public String hget(String hkey, String key);
+	
+	public long hset(String hkey, String key, String value);
+	
+	public long incr(String key);
+	
+	public long expire(String key, int second);
+	
+	public long ttl(String key);
+	
+	public long del(String key);
+	
+	public long hdel(String hkey, String key);
+	
+	public Set<String> keys(String key);
+	
+	public boolean exists(String key);
+	
+	
+}

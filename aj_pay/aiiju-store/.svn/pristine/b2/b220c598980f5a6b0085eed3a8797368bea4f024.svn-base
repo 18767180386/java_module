@@ -1,0 +1,180 @@
+package com.aiiju.store.service.impl;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.mapper.BookingManageMapper;
+import com.aiiju.mapper.BookingManageSwitchMapper;
+import com.aiiju.pojo.BookingManage;
+import com.aiiju.pojo.BookingManageSwitch;
+import com.aiiju.pojo.JPush;
+import com.aiiju.pojo.User;
+import com.aiiju.store.service.BookingManageService;
+import com.github.pagehelper.PageHelper;
+/**
+ * 
+ * @ClassName: BookingManageServiceImpl 
+ * @Description: 预约管理 ServiceImpl
+ * @author 乔巴
+ * @date 2017年08月23日 
+ *
+ */
+@Service("bookingManageService")
+public class BookingManageServiceImpl implements BookingManageService {
+	
+	@Autowired
+	private BookingManageMapper bookingManageMapper;
+	
+	@Autowired
+	private BookingManageSwitchMapper bookingManageSwitchMapper;
+	
+	
+	
+
+	@Override
+	public List<Map<String, Object>> getBoookingManageList(String status,String startDate,String endDate,
+			String phone, String keyWord,Integer pageNum, Integer pageSize,String storeId) {
+		PageHelper.startPage(pageNum, pageSize);
+		return bookingManageMapper.getBoookingManageList(status,startDate, endDate, phone, keyWord,storeId);
+	}
+
+	@Override
+	public List<Map<String, Object>> getBookingManageById(Long id) {
+		return bookingManageMapper.getBookingManageById(id);
+	}
+
+	@Override
+	public int updateById(BookingManage bookingManage) {
+		return bookingManageMapper.updateById(bookingManage);
+	}
+
+	@Override
+	public int deleteById(Long id) {
+		return bookingManageMapper.deleteById(id);
+	}
+
+	@Override
+	public Map<String, Date> getRecentTime(String storeId,String phone) {
+		return bookingManageMapper.getRecentTime(storeId,phone);
+	}
+
+	@Override
+	public int createOrder(BookingManage bookingManage) {
+		return bookingManageMapper.createOrder(bookingManage);
+	}
+	@Override
+	public Map<String, String> getTotalAmount(String status,String storeId,String startDate,String endDate,
+			String phone,String keyWord) {
+		return bookingManageMapper.getTotalAmount(status,storeId,startDate,endDate,phone,keyWord);
+	}
+
+	@Override
+	public List<Map<String, String>> getAllBeginAndReminderTime(String storeId) {
+		return bookingManageMapper.getAllBeginAndReminderTime(storeId);
+	}
+
+	@Override
+	public List<Map<String, String>> getDrawerEquipmentCode() {
+		return bookingManageMapper.getDrawerEquipmentCode();
+	}
+
+	@Override
+	public List<Map<String, String>> getDrawerAndCustomerCode() {
+		return bookingManageMapper.getDrawerAndCustomerCode();
+	}
+
+	@Override
+	public int bacthAddRemindTime(List<BookingManage> list) {
+		return bookingManageMapper.bacthAddRemindTime(list);
+	}
+
+	@Override
+	public List<Map<String, String>> getRemindStatus(String storeId) {
+		return bookingManageMapper.getRemindStatus(storeId);
+	}
+
+	@Override
+	public int bacthSetByRemindTime(List<BookingManage> list) {
+		return bookingManageMapper.bacthSetByRemindTime(list);
+	}
+
+	@Override
+	public int bacthSetByBeginTime(List<BookingManage> list) {
+		return bookingManageMapper.bacthSetByBeginTime(list);
+	}
+
+	@Override
+	public Map<String, Object> getIdBySendTime(String sendTime) {
+		return bookingManageMapper.getIdBySendTime(sendTime);
+	}
+
+	@Override
+	public Map<String, Object> getIdByBeginTime(String beginTime) {
+		return bookingManageMapper.getIdByBeginTime(beginTime);
+	}
+
+	@Override
+	public List<BookingManage> findAllBookingManage() {
+		List<BookingManage> list = bookingManageMapper.findAllBookingManage();
+		return list;
+	}
+
+	@Override
+	public void updatePushsStatusById(long id) {
+		bookingManageMapper.updatePushsStatusById(id);
+	}
+
+	@Override
+	public void updateSendStatusById(long id) {
+		bookingManageMapper.updateSendStatusById(id);
+		
+	}
+
+	@Override
+	public List<JPush> getJPushListByPhone(String phone) {
+		List<JPush> list = bookingManageMapper.getJPushListByPhone(phone);
+		return list;
+	}
+
+	@Override
+	public List<User> getCustomerFromUserByStoreId(String storeId) {
+		List<User> list = bookingManageMapper.getCustomerFromUserByStoreId(storeId);
+		return list;
+	}
+
+	@Override
+	public Result updateRemindSwitch(BookingManage bookingManage) {
+		
+		System.out.println("-------------");
+		     String remind_status=   bookingManageMapper.getBookingManageSwitchByStoreId(bookingManage.getStoreId());
+		     
+		     if(remind_status==null){
+		    	 // 新增
+		    	 bookingManage.setCreateTime(new Date());
+		    	 bookingManageMapper.saveBookingManageSwitch(bookingManage);
+		    	 remind_status=   bookingManageMapper.getBookingManageSwitchByStoreId(bookingManage.getStoreId());
+		     }else{
+		    	 // 更新
+		    	 bookingManage.setUpdateTime(new Date());
+		    	 bookingManageMapper.updateBookingManageSwitch(bookingManage);
+		     }
+		
+		return Result.success(remind_status);
+	}
+
+	@Override
+	public BookingManageSwitch getRemindSwitch(BookingManage bookingManage) {
+		
+		BookingManageSwitch db=   bookingManageSwitchMapper.getBookingManageSwitchByStoreId(bookingManage.getStoreId());
+		
+		return db;
+	}
+
+
+	
+}

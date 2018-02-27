@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.PATagPhoneMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.PATagPhone" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="role" property="role" jdbcType="VARCHAR" />
+    <result column="message" property="message" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, phone, role, message, status
+  </sql>
+  
+  
+   <select id="getPATagPhone" resultMap="BaseResultMap"  >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_tag_phone where status=1 and role=1
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_tag_phone
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from pa_tag_phone
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.aiiju.pojo.PATagPhone" >
+    insert into pa_tag_phone (id, phone, role, 
+      message, status)
+    values (#{id,jdbcType=INTEGER}, #{phone,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, 
+      #{message,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.aiiju.pojo.PATagPhone" >
+    insert into pa_tag_phone
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="phone != null" >
+        phone,
+      </if>
+      <if test="role != null" >
+        role,
+      </if>
+      <if test="message != null" >
+        message,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="phone != null" >
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="role != null" >
+        #{role,jdbcType=VARCHAR},
+      </if>
+      <if test="message != null" >
+        #{message,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.aiiju.pojo.PATagPhone" >
+    update pa_tag_phone
+    <set >
+      <if test="phone != null" >
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="role != null" >
+        role = #{role,jdbcType=VARCHAR},
+      </if>
+      <if test="message != null" >
+        message = #{message,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.aiiju.pojo.PATagPhone" >
+    update pa_tag_phone
+    set phone = #{phone,jdbcType=VARCHAR},
+      role = #{role,jdbcType=VARCHAR},
+      message = #{message,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

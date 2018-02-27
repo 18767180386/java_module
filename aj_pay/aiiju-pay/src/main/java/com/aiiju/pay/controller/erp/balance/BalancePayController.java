@@ -1,0 +1,142 @@
+package com.aiiju.pay.controller.erp.balance;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.ErpMemBalanceUtil;
+import com.aiiju.common.util.RandomUtil;
+import com.aiiju.pay.bo.CommonBuilder;
+import com.aiiju.pay.controller.zfb.ZFBPayController;
+import com.aiiju.pay.service.DealService;
+import com.aiiju.pay.service.MPointsDetailService;
+import com.aiiju.pojo.Deal;
+import com.alibaba.fastjson.JSONObject;
+
+/**
+ * 会员余额支付(山耕项目)
+ * @author zong
+ *
+ */
+@Controller
+@RequestMapping("/balancepay")
+public class BalancePayController {
+
+	private static Logger logger = Logger.getLogger(ZFBPayController.class);
+
+
+	@Autowired
+	private DealService dealService;
+
+
+
+	@Autowired
+	private MPointsDetailService mPointsDetailService;
+	
+	
+	/**
+	 * 会员余额支付
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
+	@RequestMapping("/pay")
+	@ResponseBody
+	public Result balancePay(HttpServletRequest req, HttpServletResponse resp) {
+		
+		
+		/**
+		 * 第一步，创建流水
+		 * 第二步，请求erp会员余额支付接口
+		 * 第三步，返回结果
+		 */
+		
+		String storeId = req.getParameter("storeId");
+		String outTradeNo = storeId + RandomUtil.generateCode();
+		String tradeType = "1"; // 支付
+		String payTypeDetail = "61"; // 会员余额支付
+		Map<String,Object> createMap = this.createOrder(req, payTypeDetail, outTradeNo, tradeType);
+		
+		boolean flag = (boolean) createMap.get("flag");
+
+		if (!flag) {
+			return Result.build(500, "创建订单失败!请重新尝试扫描二维码");
+		}
+
+		Deal deal = (Deal) createMap.get("deal");
+		String price = req.getParameter("price");
+		String vipCode = req.getParameter("vipCode");
+		
+		JSONObject json = ErpMemBalanceUtil.balancePay(price, outTradeNo, vipCode,storeId);
+		
+		String code = json.getString("code");
+		
+		Result result = new Result();
+		if("200".equals(code)){
+			System.out.println("");
+			deal.setStatus(Byte.parseByte("1"));// 订单完成
+			deal.setTradeStatus("已支付");
+//			mPointsDetailService.saveMPointsDetail(deal); //积分
+			
+			Boolean updateRT = this.dealService.updateDeal(deal);
+            if (updateRT) {
+            	result = Result.build(10000, "会员余额支付成功");
+            } else {
+                result = Result.build(40004, "会员余额支付成功!但订单状态修改失败!");
+            }
+			
+			
+			
+		}else if ("403".equals(code)) { //条形码失效
+    		return Result.build(40004, "重复支付");				
+			
+			
+		}else if ("405".equals(code)) { //条形码失效
+    		return Result.build(40004, "条形码失效");				
+			
+		}else{
+			logger.error("会员余额支付失败");
+			result = Result.build(40004, "会员余额支付失败");
+			
+		}
+		
+		return result;
+	}
+	
+	
+	/**
+	 * 创建流水
+	 * 
+	 * @param request
+	 * @param payTypeDetail 
+	 * @param outTradeNo
+	 * @param auth
+	 * @return
+	 */
+	private Map<String,Object> createOrder(HttpServletRequest request, String payTypeDetail, String outTradeNo,String tradeType) {
+	
+		Deal deal = CommonBuilder.buildOrder(request, payTypeDetail, outTradeNo, tradeType);
+
+		Result result = this.dealService.saveDeal(deal, "interface");
+
+		Map<String,Object> map = new HashMap<String,Object>();
+		map.put("deal", deal);
+		if (result.getStatus() == 200) {
+			map.put("flag", true);
+		} else {
+			map.put("flag", false);
+		}
+		return map;
+
+	}
+	
+}

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.MPointsMapper">
+
+
+	
+	<select id="getByStoreId" parameterType="java.lang.String" resultMap="MPointsMap">
+		select
+			<include refid="selectSql"></include>
+		 from m_points where store_id = #{storeId} 
+	</select>
+
+	<select id="getById" parameterType="java.lang.Long" resultMap="MPointsMap">
+		select
+			<include refid="selectSql"></include>
+		 from m_points where id = #{id} 
+	</select>
+
+	<insert id="add" parameterType="com.aiiju.pojo.MPoints"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		m_points(points_worth,use_type,status,store_id)
+		values(#{pointsWorth},#{useType},#{status},#{storeId})
+	</insert>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		delete from m_points where id =#{id}
+	</delete>
+
+	<update id="update" parameterType="com.aiiju.pojo.MPoints">
+		update m_points m
+		<set>
+			<if test="useType != null and useType != '' ">
+				m.use_type = #{useType},
+			</if>
+			<if test="pointsWorth != null and pointsWorth != '' ">
+				m.points_worth = #{pointsWorth},
+			</if>
+			<if test="status != null and status != '' ">
+				m.status = #{status},
+			</if>
+		</set>
+		where m.store_id = #{storeId}
+	</update>
+
+
+	<sql id="selectSql">
+		id,get_type,use_limit,points_worth,use_type,store_id,status
+	</sql>
+
+	<resultMap type="com.aiiju.pojo.MPoints" id="MPointsMap">
+		<id column="id" property="id" />
+		<result column="get_type" property="getType" />
+		<result column="use_limit" property="useLimit" />
+		<result column="points_worth" property="pointsWorth" />
+		<result column="use_type" property="useType" />
+		<result column="store_id" property="storeId" />
+		<result column="status" property="status" />
+	</resultMap>
+
+
+
+</mapper>

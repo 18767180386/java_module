@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.PAImagesMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.PAImages"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into pa_images
+		(field_remark,field_name,image_name,image_type,image_url,store_id,storage,file_path,status,create_date,remark)
+		values(#{fieldRemark},#{fieldName},#{imageName},#{imageType},#{imageUrl},#{storeId},#{storage},#{filePath},#{status},#{createDate},#{remark})
+	</insert>
+
+	<update id="update" parameterType="com.aiiju.pojo.PAImages">
+		update pa_images
+		<set>
+			<if test="imageName != null and imageName !=''">
+				image_name = #{imageName},
+			</if>
+
+			<if test="imageType != null and imageType !=''">
+				image_type = #{imageType},
+			</if>
+			<if test="imageUrl != null and imageUrl !=''">
+				image_url = #{imageUrl},
+			</if>
+			
+			<if test="storage != null and storage !=''">
+				storage = #{storage},
+			</if>
+			<if test="filePath != null and filePath !=''">
+				file_path = #{filePath},
+			</if>
+			<if test="remark != null and remark !=''">
+				remark = #{remark},
+			</if>
+			<if test="modify_date != null and modify_date !=''">
+				modify_date = #{modify_date},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+
+	<select id="getByFilePath" parameterType="java.lang.String"
+		resultType="com.aiiju.pojo.PAImages">
+		select file_path as filePath,image_url as  imageUrl from pa_images where file_path =
+		#{filePath} order by create_date desc limit 1
+	</select>
+
+	<delete id="deleteImageInfo" parameterType="java.lang.String">
+
+		delete from pa_images where file_path = #{filePath}
+	</delete>
+
+
+</mapper>

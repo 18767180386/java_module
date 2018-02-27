@@ -1,0 +1,859 @@
+package com.aiiju.store.controller.rest;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.DateUtil;
+import com.aiiju.common.util.VerifyUtils;
+import com.aiiju.pojo.BookingManage;
+import com.aiiju.pojo.BookingManageSwitch;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.editor.DateEditor;
+import com.aiiju.store.service.BookingManageService;
+import com.aiiju.store.util.AppUtil;
+
+/**
+ * @ClassName: BookingManageController 
+ * @Description: 预约管理功能模块
+ * @author 乔巴
+ * @date 2017年08月23日  
+ *
+ */
+@Controller
+@RequestMapping(value = "/bookingManage")
+public class BookingManageController {
+
+	private static Logger logger = Logger.getLogger(BookingManageController.class);
+	
+	@Autowired
+	private BookingManageService bookingManageService;
+	
+    @InitBinder
+    public void initBinder(WebDataBinder binder){
+            binder.registerCustomEditor(Date.class, new DateEditor("yyyy-MM-dd HH:mm:ss"));
+    }
+	
+    @RequestMapping("/getBoookingManageList")
+    @ResponseBody
+    public Result getList(BookingManage bookingManage,String startDate,String endTime,String searchDate,String keyWord,@RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        try {
+        	
+            return this.bookingManageService.getList(bookingManage,startDate,endTime,searchDate,keyWord,pageNum,pageSize);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    
+
+	/**
+	 * 1.获取预约管理列表
+	 * @param maps
+	 * @return
+	
+    /**
+	 @RequestMapping(value = "/getBoookingManageList", method = {RequestMethod.GET, RequestMethod.POST})
+	 @ResponseBody
+	 public Result getBoookingManageList(@RequestParam Map<String,String> maps){
+		 try {
+			 Integer pageNum = Integer.parseInt(VerifyUtils.verifyString(maps.get("pageNum")));//当前页
+			 Integer pageSize = Integer.parseInt(VerifyUtils.verifyString(maps.get("pageSize")));//每页大小
+			 String status = maps.get("bookingStatus");//预约单状态
+			 Integer userId = Integer.valueOf(VerifyUtils.verifyString(maps.get("createUserId")));//用戶id
+			 String storeId = VerifyUtils.verifyString(maps.get("storeId"));//店铺id
+			 String startDate = maps.get("startDate");//开始时间
+			 String endDate = maps.get("endDate");//结束时间
+			 String searchDate = maps.get("searchDate");//筛选时间
+			 String drawer = maps.get("drawer");//纹身师
+			 String phone = maps.get("phone");//phone必须传递参数
+			 String keyWord = maps.get("keyWord");//客户姓名
+			 
+			 List<Map<String, Object>> bookingManageList =null;
+			 Map<String, String> totalAmount =null;
+			 List<Map<String,Object>> count =null;
+			 
+			 Map<String,String> role = bookingManageService.getAllRole(userId);
+			 if(role.get("role")!=null && !"".equals(role.get("role"))){
+				 if("0".equals(role.get("role"))){
+					 bookingManageList =bookingManageService.getBoookingManageList(status,null,null,null,null, pageNum, pageSize,storeId,null);
+					 totalAmount = bookingManageService.getTotalAmount(status,storeId,null,null,null,null,null);//获取总计金额
+					 count =bookingManageService.getCount(status,null,null,null,null, pageNum, pageSize,storeId,null);
+					 if(searchDate!=null &&!"".equals(searchDate)){
+						 Date date = new Date();
+						 String todayStart = DateUtil.formatDate(date,"yyyy-MM-dd")+" 00:00:00";//今天开始时间
+						 String todayEnd = DateUtil.formatDate(date,"yyyy-MM-dd")+" 23:59:59";//今天结束时间
+						 Date yesterday=  DateUtil.rollDay(date, -1);//昨天
+						 String yesterdayStart = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 00:00:00";//昨天开始时间
+						 String yesterdayEnd = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 23:59:59";//昨天结束时间
+						 String startTimeWeek =  DateUtil.getThisWeekStartAndEnd().get("startTime")+" 00:00:00";//本周开始时间
+						 String endTimeWeek = DateUtil.getThisWeekStartAndEnd().get("endTime")+" 23:59:59";//本周结束时间
+						 Date recentSevenDay=  DateUtil.rollDay(date, -7);//7天前
+						 String startTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("startTime")+" 00:00:00";//本月开始时间
+						 String endTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("endTime")+" 23:59:59";//本月结束时间
+						 String lastMonthStartTime =  DateUtil.getLastMonthStartAndEnd().get("startTime")+" 00:00:00";//上月开始时间
+						 String lastMonthEndTime = DateUtil.getLastMonthStartAndEnd().get("endTime")+" 23:59:59";//上月结束时间
+						 if("0".equals(searchDate)){//今天
+							 bookingManageList =bookingManageService.getBoookingManageList(status,todayStart,todayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,todayStart,todayEnd,null,null,drawer);//获取总计金额
+							 count = bookingManageService.getCount(status,todayStart,todayEnd, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("1".equals(searchDate)){//昨天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, yesterdayStart,yesterdayEnd,null,null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,yesterdayStart,yesterdayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, yesterdayStart,yesterdayEnd,null,null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("2".equals(searchDate)){//本周
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeWeek, endTimeWeek, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeWeek,endTimeWeek,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeWeek, endTimeWeek, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("3".equals(searchDate)){//近7天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("4".equals(searchDate)){//本月
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeMonth, endTimeMonth, null,null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeMonth,endTimeMonth,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeMonth, endTimeMonth, null,null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("5".equals(searchDate)){//上月
+							 bookingManageList =bookingManageService.getBoookingManageList(status,lastMonthStartTime,lastMonthEndTime, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,lastMonthStartTime,lastMonthEndTime,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,lastMonthStartTime,lastMonthEndTime, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("6".equals(searchDate)){//自定义
+							 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,startDate,endDate, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+					 }
+					 else if(drawer!=null &&!"".equals(drawer)){
+						 bookingManageList =bookingManageService.getBoookingManageList(status,null,null, null, null, pageNum, pageSize,storeId,drawer);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,null,drawer);//获取总计金额
+						 count =bookingManageService.getCount(status,null,null, null, null, pageNum, pageSize,storeId,drawer);
+					 }
+					 
+					 else if(searchDate!=null &&!"".equals(searchDate)&&drawer!=null &&!"".equals(drawer)){
+						 Date date = new Date();
+						 String todayStart = DateUtil.formatDate(date,"yyyy-MM-dd")+" 00:00:00";//今天开始时间
+						 String todayEnd = DateUtil.formatDate(date,"yyyy-MM-dd")+" 23:59:59";//今天结束时间
+						 Date yesterday=  DateUtil.rollDay(date, -1);//昨天
+						 String yesterdayStart = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 00:00:00";//昨天开始时间
+						 String yesterdayEnd = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 23:59:59";//昨天结束时间
+						 String startTimeWeek =  DateUtil.getThisWeekStartAndEnd().get("startTime")+" 00:00:00";//本周开始时间
+						 String endTimeWeek = DateUtil.getThisWeekStartAndEnd().get("endTime")+" 23:59:59";//本周结束时间
+						 Date recentSevenDay=  DateUtil.rollDay(date, -7);//7天前
+						 String startTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("startTime")+" 00:00:00";//本月开始时间
+						 String endTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("endTime")+" 23:59:59";//本月结束时间
+						 String lastMonthStartTime =  DateUtil.getLastMonthStartAndEnd().get("startTime")+" 00:00:00";//上月开始时间
+						 String lastMonthEndTime = DateUtil.getLastMonthStartAndEnd().get("endTime")+" 23:59:59";//上月结束时间
+						 if("0".equals(searchDate)){//今天
+							 bookingManageList =bookingManageService.getBoookingManageList(status,todayStart,todayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,todayStart,todayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,todayStart,todayEnd, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("1".equals(searchDate)){//昨天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, yesterdayStart,yesterdayEnd,null,null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,yesterdayStart,yesterdayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, yesterdayStart,yesterdayEnd,null,null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("2".equals(searchDate)){//本周
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeWeek, endTimeWeek, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeWeek,endTimeWeek,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeWeek, endTimeWeek, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("3".equals(searchDate)){//近7天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("4".equals(searchDate)){//本月
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeMonth, endTimeMonth, null,null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeMonth,endTimeMonth,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeMonth, endTimeMonth, null,null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("5".equals(searchDate)){//上月
+							 bookingManageList =bookingManageService.getBoookingManageList(status,lastMonthStartTime,lastMonthEndTime, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,lastMonthStartTime,lastMonthEndTime,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,lastMonthStartTime,lastMonthEndTime, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("6".equals(searchDate)){//自定义
+							 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,startDate,endDate, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+					 }
+					 else if(keyWord!=null &&!"".equals(keyWord)){
+						 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, null, keyWord, pageNum, pageSize,storeId,null);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,keyWord,null);//获取总计金额
+						 count =bookingManageService.getCount(status,startDate,endDate, null, keyWord, pageNum, pageSize,storeId,null);
+					 }
+					 
+					 else{
+						 bookingManageList = bookingManageService.getBoookingManageList(status,null,null,null,null,pageNum,pageSize,storeId,null);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,null,null,null,null,null);//获取总计金额
+						 count = bookingManageService.getCount(status,null,null,null,null,pageNum,pageSize,storeId,null);
+					 }
+					 
+				 }
+				 if("3".equals(role.get("role"))){
+					 bookingManageList =bookingManageService.getBoookingManageList(status,null,null,null,null, pageNum, pageSize,storeId,null);
+					 totalAmount = bookingManageService.getTotalAmount(status,storeId,null,null,null,null,null);//获取总计金额
+					 count =bookingManageService.getCount(status,null,null,null,null, pageNum, pageSize,storeId,null);
+					 if(searchDate!=null &&!"".equals(searchDate)){
+						 Date date = new Date();
+						 String todayStart = DateUtil.formatDate(date,"yyyy-MM-dd")+" 00:00:00";//今天开始时间
+						 String todayEnd = DateUtil.formatDate(date,"yyyy-MM-dd")+" 23:59:59";//今天结束时间
+						 Date yesterday=  DateUtil.rollDay(date, -1);//昨天
+						 String yesterdayStart = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 00:00:00";//昨天开始时间
+						 String yesterdayEnd = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 23:59:59";//昨天结束时间
+						 String startTimeWeek =  DateUtil.getThisWeekStartAndEnd().get("startTime")+" 00:00:00";//本周开始时间
+						 String endTimeWeek = DateUtil.getThisWeekStartAndEnd().get("endTime")+" 23:59:59";//本周结束时间
+						 Date recentSevenDay=  DateUtil.rollDay(date, -7);//7天前
+						 String startTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("startTime")+" 00:00:00";//本月开始时间
+						 String endTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("endTime")+" 23:59:59";//本月结束时间
+						 String lastMonthStartTime =  DateUtil.getLastMonthStartAndEnd().get("startTime")+" 00:00:00";//上月开始时间
+						 String lastMonthEndTime = DateUtil.getLastMonthStartAndEnd().get("endTime")+" 23:59:59";//上月结束时间
+						 if("0".equals(searchDate)){//今天
+							 bookingManageList =bookingManageService.getBoookingManageList(status,todayStart,todayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,todayStart,todayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,todayStart,todayEnd, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("1".equals(searchDate)){//昨天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, yesterdayStart,yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,yesterdayStart,yesterdayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, yesterdayStart,yesterdayEnd, null, null, null, pageSize,storeId,drawer);
+						 }
+						 if("2".equals(searchDate)){//本周
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeWeek, endTimeWeek, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeWeek,endTimeWeek,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeWeek, endTimeWeek, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("3".equals(searchDate)){//近7天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("4".equals(searchDate)){//本月
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeMonth, endTimeMonth, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeMonth,endTimeMonth,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeMonth, endTimeMonth, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("5".equals(searchDate)){//上月
+							 bookingManageList =bookingManageService.getBoookingManageList(status,lastMonthStartTime,lastMonthEndTime, null, null, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,lastMonthStartTime,lastMonthEndTime,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,lastMonthStartTime,lastMonthEndTime, null, null, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("6".equals(searchDate)){//自定义
+							 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, null, null, null, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,null,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,startDate,endDate, null, null, null, pageSize,storeId,drawer);
+						 }
+					 }
+					 
+					 else if(drawer!=null &&!"".equals(drawer)){
+						 bookingManageList =bookingManageService.getBoookingManageList(status,null,null, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,keyWord,drawer);//获取总计金额
+						 count =bookingManageService.getCount(status,null,null, null, keyWord, pageNum, pageSize,storeId,drawer);
+					 }
+					 
+					 else if(searchDate!=null &&!"".equals(searchDate)&&drawer!=null &&!"".equals(drawer)){
+						 Date date = new Date();
+						 String todayStart = DateUtil.formatDate(date,"yyyy-MM-dd")+" 00:00:00";//今天开始时间
+						 String todayEnd = DateUtil.formatDate(date,"yyyy-MM-dd")+" 23:59:59";//今天结束时间
+						 Date yesterday=  DateUtil.rollDay(date, -1);//昨天
+						 String yesterdayStart = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 00:00:00";//昨天开始时间
+						 String yesterdayEnd = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 23:59:59";//昨天结束时间
+						 String startTimeWeek =  DateUtil.getThisWeekStartAndEnd().get("startTime")+" 00:00:00";//本周开始时间
+						 String endTimeWeek = DateUtil.getThisWeekStartAndEnd().get("endTime")+" 23:59:59";//本周结束时间
+						 Date recentSevenDay=  DateUtil.rollDay(date, -7);//7天前
+						 String startTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("startTime")+" 00:00:00";//本月开始时间
+						 String endTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("endTime")+" 23:59:59";//本月结束时间
+						 String lastMonthStartTime =  DateUtil.getLastMonthStartAndEnd().get("startTime")+" 00:00:00";//上月开始时间
+						 String lastMonthEndTime = DateUtil.getLastMonthStartAndEnd().get("endTime")+" 23:59:59";//上月结束时间
+						 if("0".equals(searchDate)){//今天
+							 bookingManageList =bookingManageService.getBoookingManageList(status,todayStart,todayEnd, null, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,todayStart,todayEnd,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,todayStart,todayEnd, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("1".equals(searchDate)){//昨天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, yesterdayStart,yesterdayEnd,null,keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,yesterdayStart,yesterdayEnd,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, yesterdayStart,yesterdayEnd,null,keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("2".equals(searchDate)){//本周
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeWeek, endTimeWeek, null, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeWeek,endTimeWeek,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeWeek, endTimeWeek, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("3".equals(searchDate)){//近7天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("4".equals(searchDate)){//本月
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeMonth, endTimeMonth, null,keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeMonth,endTimeMonth,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeMonth, endTimeMonth, null,keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("5".equals(searchDate)){//上月
+							 bookingManageList =bookingManageService.getBoookingManageList(status,lastMonthStartTime,lastMonthEndTime, null, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,lastMonthStartTime,lastMonthEndTime,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,lastMonthStartTime,lastMonthEndTime, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("6".equals(searchDate)){//自定义
+							 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, null, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,startDate,endDate, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+					 }
+					 else if(keyWord!=null &&!"".equals(keyWord)){
+						 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, null, keyWord, pageNum, pageSize,storeId,drawer);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,null,keyWord,drawer);//获取总计金额
+						 count =bookingManageService.getCount(status,startDate,endDate, null, keyWord, pageNum, pageSize,storeId,drawer);
+					 }
+					 
+					 else{
+						 bookingManageList = bookingManageService.getBoookingManageList(status,null,null,null,null,pageNum,pageSize,storeId,null);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,null,null,null,null,null);//获取总计金额
+						 count = bookingManageService.getCount(status,null,null,null,null,pageNum,pageSize,storeId,null);
+					 }
+				 }
+				 if("1".equals(role.get("role")) || "2".equals(role.get("role"))){
+					 bookingManageList =bookingManageService.getBoookingManageList(status,null,null, phone, keyWord, pageNum, pageSize,storeId,null);
+					 totalAmount = bookingManageService.getTotalAmount(status,storeId,null,null,phone,keyWord,null);//获取总计金额
+					 if(searchDate!=null &&!"".equals(searchDate)){
+						 Date date = new Date();
+						 String todayStart = DateUtil.formatDate(date,"yyyy-MM-dd")+" 00:00:00";//今天开始时间
+						 String todayEnd = DateUtil.formatDate(date,"yyyy-MM-dd")+" 23:59:59";//今天结束时间
+						 Date yesterday=  DateUtil.rollDay(date, -1);//昨天
+						 String yesterdayStart = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 00:00:00";//昨天开始时间
+						 String yesterdayEnd = DateUtil.formatDate(yesterday,"yyyy-MM-dd")+" 23:59:59";//昨天结束时间
+						 String startTimeWeek =  DateUtil.getThisWeekStartAndEnd().get("startTime")+" 00:00:00";//本周开始时间
+						 String endTimeWeek = DateUtil.getThisWeekStartAndEnd().get("endTime")+" 23:59:59";//本周结束时间
+						 Date recentSevenDay=  DateUtil.rollDay(date, -7);//7天前
+						 String startTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("startTime")+" 00:00:00";//本月开始时间
+						 String endTimeMonth = DateUtil.getThisMonthStartAndEndDay().get("endTime")+" 23:59:59";//本月结束时间
+						 String lastMonthStartTime =  DateUtil.getLastMonthStartAndEnd().get("startTime")+" 00:00:00";//上月开始时间
+						 String lastMonthEndTime = DateUtil.getLastMonthStartAndEnd().get("endTime")+" 23:59:59";//上月结束时间
+						 if("0".equals(searchDate)){//今天
+							 bookingManageList =bookingManageService.getBoookingManageList(status,todayStart,todayEnd, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,todayStart,todayEnd,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,todayStart,todayEnd, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("1".equals(searchDate)){//昨天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, yesterdayStart,yesterdayEnd, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,yesterdayStart,yesterdayEnd,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, yesterdayStart,yesterdayEnd, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("2".equals(searchDate)){//本周
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeWeek, endTimeWeek, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeWeek,endTimeWeek,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeWeek, endTimeWeek, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("3".equals(searchDate)){//近7天
+							 bookingManageList =bookingManageService.getBoookingManageList(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, DateUtil.formatDate(recentSevenDay,"yyyy-MM-dd")+" 00:00:00",yesterdayEnd, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("4".equals(searchDate)){//本月
+							 bookingManageList =bookingManageService.getBoookingManageList(status, startTimeMonth, endTimeMonth, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startTimeMonth,endTimeMonth,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status, startTimeMonth, endTimeMonth, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("5".equals(searchDate)){//上月
+							 bookingManageList =bookingManageService.getBoookingManageList(status,lastMonthStartTime,lastMonthEndTime, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,lastMonthStartTime,lastMonthEndTime,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,lastMonthStartTime,lastMonthEndTime, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 if("6".equals(searchDate)){//自定义
+							 bookingManageList =bookingManageService.getBoookingManageList(status,startDate,endDate, phone, keyWord, pageNum, pageSize,storeId,drawer);
+							 totalAmount = bookingManageService.getTotalAmount(status,storeId,startDate,endDate,phone,keyWord,drawer);//获取总计金额
+							 count =bookingManageService.getCount(status,startDate,endDate, phone, keyWord, pageNum, pageSize,storeId,drawer);
+						 }
+						 
+					 }
+					 
+					 else{
+						 bookingManageList = bookingManageService.getBoookingManageList(status,null,null,phone,keyWord,pageNum,pageSize,storeId,drawer);
+						 totalAmount = bookingManageService.getTotalAmount(status,storeId,null,null,phone,keyWord,drawer);//获取总计金额
+						 count = bookingManageService.getCount(status,null,null,phone,keyWord,pageNum,pageSize,storeId,drawer);
+					 }
+				 }
+			 }
+			 
+			 
+//			 List<Map<String, String>>  remindStatusList = bookingManageService.getRemindStatus(storeId);//获取当前所有预约单中需要提醒的订单的订单状态
+			 
+			 Multimap<String, Map<String, Object>> flatmap = Multimaps.index(bookingManageList, new Function<Map<String, Object>, String>() {
+				 public String apply(Map<String, Object> fmap) {
+					 return fmap.get("createTime").toString();
+				 }
+			 });
+			 List<Map<String,Object>> addList = new ArrayList<>();
+			 List list1 = null;
+			 Map<String,Object> map =new HashMap<>();
+			 for (String key : flatmap.keySet()){
+				map = new HashedMap();
+				List<Map<String, Object>> bookingManageLists = (List<Map<String, Object>>) flatmap.get(key);
+				map.put("createTime", key);
+				map.put("allTotal",((List<Map<String, Object>>) flatmap.get(key)).get(0).get("total"));
+				list1 =removeEmptyList(bookingManageLists,map);
+				addList.add(map);
+			 }
+			 if(list1!=null && list1.size()>0){
+				 //PageInfo<Map<String,Object>> pageInfo = new PageInfo<Map<String,Object>>();
+				 Map<String,Object> dataMap = new HashMap<String,Object>();
+//				 if(remindStatusList.size()>0){
+//					 for (Map<String, String> remindMap : remindStatusList) {
+//						 if(remindMap!=null && !"".equals(remindMap)&&"1".equals(remindMap.get("remindStatus"))){
+//							 dataMap.put("remindStatus","1");
+//						 }else{
+//							 dataMap.put("remindStatus","0");
+//						 }
+//					}
+//				 }else{
+//					 dataMap.put("remindStatus","0"); 
+//				 }
+				 if(totalAmount!=null && !"".equals(totalAmount)){
+					 dataMap.put("totalAmount", totalAmount.get("totalAmount"));
+				 }else{
+					 dataMap.put("totalAmount", "0.00");
+				 }
+				 //dataMap.put("recordCount",pageInfo.getTotal());
+				 //dataMap.put("pageCount", pageInfo.getPages());
+				 if(count!=null&&count.size()>0){
+					 dataMap.put("recordCount", count.get(0));
+				 }else{
+					 dataMap.put("recordCount", 0);
+				 }
+				 dataMap.put("list", addList);
+				 return Result.success(dataMap);
+			 }
+			 
+			 else
+			 {
+				 Map<String,Object> dataMap = new HashMap<String,Object>();
+//				 if(remindStatusList.size()>0){
+//					 for (Map<String, String> remindMap : remindStatusList) {
+//						 if(remindMap!=null && !"".equals(remindMap)&&"1".equals(remindMap.get("remindStatus"))){
+//							 dataMap.put("remindStatus","1");
+//						 }else{
+//							 dataMap.put("remindStatus","0");
+//						 }
+//					}
+//				 }else{
+//					 dataMap.put("remindStatus","0");
+//				 }
+				 dataMap.put("totalAmount", "0.00");
+				 //dataMap.put("recordCount","0.00");
+				 //dataMap.put("pageCount", "0.00");
+				 if(count!=null&&count.size()>0){
+					 dataMap.put("recordCount", count.get(0));
+				 }else{
+					 dataMap.put("recordCount", 0);
+				 }
+				 dataMap.put("list", addList);
+				 return Result.success(dataMap);
+			 }
+		 } catch (Exception e) {
+			 logger.error(e.getMessage());
+			 return Result.build(500,WebConstant.SYS_ERROR);
+		 }
+	 } 
+	  */
+	 
+	 /** 
+	     * 删除list<Map<String,Object>>中所有为空的map元素 
+	     * 删除为空的操作方式非常复杂，因为你每一次删除一个map元素之后， 
+	     * 当前的list的大小就会变化，但是反过来想，如果只是获取它不为 
+	     * 空的元素则不需要考虑它的size大小的变化，而且比较简单。 
+	     * @param list 
+	     * @return 
+	     */ 
+	 public static List removeEmptyList(List<Map<String, Object>> list,Map<String,Object> map) {  
+	        List list1 = new ArrayList();  
+	          
+	        if(list==null||list.size()<=0)  
+	            return null;  
+	        //循环第一层  
+	        for(int i=0;i<list.size();i++) {  
+	            //进入每一个map  
+	        	Map<String, Object> map1 = list.get(i);  
+	            if(map1!=null && !"0.00".equals(map1.get("paid")))  
+	                list1.add(map1);  
+	            System.out.println(map1.size());  
+	        }  
+			map.put("bookingManageList", list1);
+	        return list1;  
+	    }  
+	
+	 /**
+	  * 2.根据id查询预约单详情 
+	  * @param maps
+	  * @return
+	  */
+	 @RequestMapping(value ="/getBookingManageById" ,method = {RequestMethod.GET,RequestMethod.POST})
+	 @ResponseBody
+	public Result getBookingManageById(@RequestParam Map<String,String> maps){
+		 try {
+			Long id = Long.valueOf(VerifyUtils.verifyString(maps.get("id")));
+			List<Map<String, Object>> bookingManageDetails = bookingManageService.getBookingManageById(id);
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("bookingManageDetails", bookingManageDetails);
+			if(bookingManageDetails!=null && bookingManageDetails.size()>0){
+				return Result.success(map);
+			}else{
+				return Result.build(401,WebConstant.IS_DEL);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	 } 
+	
+	/**
+	 * 3.根据id编辑预约单
+	 */
+	 @RequestMapping(value = "/updateById", method = {RequestMethod.GET,RequestMethod.POST})
+	 @ResponseBody
+	 public Result updateById(@RequestParam Map<String, String> maps){
+		 try {
+			 String id = maps.get("id");
+			 String storeId = maps.get("storeId");//店铺编号
+			 String phone = maps.get("phone");//手机号
+			 String customerName = maps.get("customerName");//顾客姓名
+			 String customerSex = maps.get("customerSex");//顾客性别
+			 String contactWay = maps.get("contactWay");//联系方式
+			 String beginTime = maps.get("beginTime");//开始时间
+			 String endTime = maps.get("endTime");//结束时间
+			 String paidDeposit = maps.get("paid");//已付定金
+			 String notPay = maps.get("unpay");//待付尾款
+			 String drawer = maps.get("drawer");//纹身师
+			 String remark = maps.get("remark");//备注
+			 String createUserId = maps.get("createUserId");//创建预约单用户id
+			 String bookingStatus = maps.get("bookingStatus");//预约单状态
+			 Date beginDate = null;
+			 Date endDate = null;
+			 if(beginTime!=null && !"".equals(beginTime)){
+				  beginDate = DateUtil.parseStr(beginTime,"yyyy-MM-dd HH:mm");
+			 }
+			 if(endTime!=null && !"".equals(endTime)){
+				  endDate = DateUtil.parseStr(endTime, "yyyy-MM-dd HH:mm");
+			 }
+			 Date date =new Date();
+			 List<BookingManage> list =null;
+			 List<BookingManage> endDateDB = bookingManageService.getRecentTime(storeId,phone,Long.valueOf(id));//获取每个店铺每个纹身师所有的预约单开始和结束时间
+			 
+			 List<BookingManage> endDateDBOne = bookingManageService.getRecentTime(storeId,phone,null);//获取每个店铺每个纹身师所有的预约单开始和结束时间
+			//创建新预约单的开始时间或者结束时间,不能与上一订单开始结束时间重合
+			 if(endDateDB!=null &&!"".equals(endDateDB)&&endDateDBOne!=null &&!"".equals(endDateDBOne)){
+				 for (int i = 0; i < endDateDB.size(); i++) {
+					 for (int j = 0; j < endDateDBOne.size(); j++) {
+						 if(endDateDBOne.get(j).getBeginTime().equals(endDateDB.get(i).getBeginTime())){
+							 endDateDBOne.remove(j);
+						 }
+						
+					}
+				}
+				 
+			 }
+			//创建新预约单的开始时间或者结束时间,不能与上一订单开始结束时间重合
+			 if(beginTime!=null && !"".equals(beginTime)&& endTime!=null && !"".equals(endTime)){
+				 for (BookingManage bookingManage : endDateDBOne) {
+					 Date beginTimeDate = bookingManage.getBeginTime();
+					 Date endTimeDate = bookingManage.getEndTime();
+					 if(beginDate.getTime()<=endTimeDate.getTime() && beginDate.getTime()>=beginTimeDate.getTime()||endDate.getTime()>=beginTimeDate.getTime()&&endDate.getTime()<=endTimeDate.getTime()||beginDate.getTime()<=beginTimeDate.getTime()&&endDate.getTime()>=endTimeDate.getTime()){
+							return Result.build(401,WebConstant.TIME_CREATE_FAIL);
+					}
+				} 
+			 }
+			 
+			 BookingManage bookingManage = new BookingManage();
+			 bookingManage.setId(Long.valueOf(id));
+			 bookingManage.setCustomerName(customerName);
+			 if(customerSex!=null && "0".equals(customerSex)){
+				 bookingManage.setCustomerSex("男");
+			 }
+			 if(customerSex!=null && "1".equals(customerSex)){
+				 bookingManage.setCustomerSex("女");
+			 }
+			 bookingManage.setBookingStatus(bookingStatus);
+			 bookingManage.setContactWay(contactWay);
+			 if(beginTime!=null && !"".equals(beginTime)){
+				 bookingManage.setBeginTime(DateUtil.parseStr(beginTime,"yyyy-MM-dd HH:mm"));
+			 }
+			 if(endTime!=null && !"".equals(endTime)){
+				 bookingManage.setEndTime(DateUtil.parseStr(endTime, "yyyy-MM-dd HH:mm"));
+			 }
+			 bookingManage.setPaid(AppUtil.newBigDecimal(paidDeposit));
+			 bookingManage.setUnpay(AppUtil.newBigDecimal(notPay));
+			 bookingManage.setOneTotal(AppUtil.add(AppUtil.newBigDecimal(paidDeposit), AppUtil.newBigDecimal(notPay)));
+			 bookingManage.setDrawer(drawer);
+			 bookingManage.setRemark(remark);
+			 if(createUserId!=null && !"".equals(createUserId)){
+				 bookingManage.setCreateUserId(Integer.parseInt(createUserId));
+			 }
+			 int count = bookingManageService.updateById(bookingManage);
+			 if(count>0){
+				 return Result.success();
+			 }else{
+				 return Result.build(401,WebConstant.FAIL); 
+			 }
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+		 
+	 }
+	 
+	 /**
+	  * 4.根据id逻辑删除预约单
+	  */
+	 @RequestMapping(value = "/deleteById",method = {RequestMethod.GET,RequestMethod.POST})
+	 @ResponseBody
+	 public Result deleteById(@RequestParam Map<String, String> maps){
+		try {
+			String id = VerifyUtils.verifyString(maps.get("id"));
+			int count = bookingManageService.deleteById(Long.valueOf(id));
+			 if(count > 0){
+				 return Result.success();
+			 }else{
+				 return Result.build(401,WebConstant.FAIL);
+			 }
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	 }
+	 
+	 /**
+	  * 5.创建新的预约单
+	  */
+	 @RequestMapping(value = "/createNewBooking",method = {RequestMethod.GET,RequestMethod.POST})
+	 @ResponseBody
+	 public Result createNewBooking(@RequestParam Map<String, String> maps){
+		 try {
+			 String storeId = maps.get("storeId");//店铺编号
+			 String parentStoreId = maps.get("parentStoreId");//父店编号
+			 String customerName = maps.get("customerName");//顾客姓名
+			 //String customerSex = new String(maps.get("customerSex").getBytes("iso-8859-1"),"UTF-8");//顾客性别
+			 String customerSex = maps.get("customerSex");
+			 String contactWay = maps.get("contactWay");//联系方式
+			 String beginTime = maps.get("beginTime");//开始时间
+			 String endTime = maps.get("endTime");//结束时间
+			 String paidDeposit = maps.get("paid");//已付定金
+			 String notPay = maps.get("unpay");//待付尾款
+			 String drawer = maps.get("drawer");//纹身师
+			 String remark = maps.get("remark");//备注
+			 String createUserId = maps.get("createUserId");//创建预约单用户id
+			 String  operatorId = maps.get("operatorId");//操作者id
+			 String bookingStatus = maps.get("bookingStatus");//订单状态
+			 String phone = maps.get("phone");//手机号
+			 
+			 
+			 Map<String,String> username =bookingManageService.getUserName(phone);//通过手机号到user表查询到username
+			 String drawers =null;
+			 if(username!=null &&!"".equals(username)){
+				  drawers = username.get("username");
+			 }
+			 
+			 Date beginDate = DateUtil.parseStr(beginTime,"yyyy-MM-dd HH:mm");
+			 Date endDate = DateUtil.parseStr(endTime, "yyyy-MM-dd HH:mm");
+			 Date date =new Date();
+			 
+			 List<BookingManage> endDateDB = bookingManageService.getRecentTime(storeId,phone,null);//获取每个店铺每个纹身师所有的预约单开始和结束时间
+			//创建新预约单的开始时间或者结束时间,不能与上一订单开始结束时间重合
+			 if(endDateDB!=null &&!"".equals(endDateDB)){
+				 for (BookingManage bookingManage : endDateDB) {
+					 Date beginTimeDate = bookingManage.getBeginTime();
+					 Date endTimeDate = bookingManage.getEndTime();
+					 if(beginDate.getTime()<=endTimeDate.getTime() && beginDate.getTime()>=beginTimeDate.getTime()||endDate.getTime()>=beginTimeDate.getTime()&&endDate.getTime()<=endTimeDate.getTime()||beginDate.getTime()<=beginTimeDate.getTime()&&endDate.getTime()>=endTimeDate.getTime()){
+							return Result.build(401,WebConstant.TIME_CREATE_FAIL);
+					}
+				}
+			 }
+			 
+			 BookingManage bookingManage = new BookingManage();
+			 if(parentStoreId!=null && !"".equals(parentStoreId)){
+				 bookingManage.setParentStoreId(parentStoreId);
+			 }else{
+				 bookingManage.setParentStoreId("");
+			 }
+			 if(storeId!=null && !"".equals(storeId)){
+				 bookingManage.setStoreId(storeId);
+			 }else{
+				 bookingManage.setStoreId("");
+			 }
+			 bookingManage.setCustomerName(customerName);
+			 if(customerSex!=null && "0".equals(customerSex)){
+				 bookingManage.setCustomerSex("男");
+			 }
+			 if(customerSex!=null && "1".equals(customerSex)){
+				 bookingManage.setCustomerSex("女");
+			 }
+			 if(operatorId!=null && !"".equals(operatorId)){
+				 bookingManage.setOperatorId(operatorId);
+			 }
+			 bookingManage.setContactWay(contactWay);
+			 bookingManage.setBeginTime(beginDate);
+			 bookingManage.setEndTime(endDate);
+			 if(paidDeposit!=null && !"".equals(paidDeposit)){
+				 bookingManage.setPaid(AppUtil.newBigDecimal(paidDeposit));
+			 }else{
+				 bookingManage.setPaid(AppUtil.newBigDecimal("0.00"));
+			 }
+			 if(notPay!=null && !"".equals(notPay)){
+				 bookingManage.setUnpay(AppUtil.newBigDecimal(notPay));
+			 }else{
+				 bookingManage.setUnpay(AppUtil.newBigDecimal("0.00"));
+			 }
+			 bookingManage.setOneTotal(AppUtil.add(AppUtil.newBigDecimal(paidDeposit), AppUtil.newBigDecimal(notPay)));
+			 if(drawers!=null && !"".equals(drawers)){
+				 bookingManage.setDrawer(drawers);
+			 }else{
+				 bookingManage.setDrawer("");
+			 }
+			 bookingManage.setPhone(phone);
+			 if(remark!=null && !"".equals(remark)){
+				 bookingManage.setRemark(remark);
+			 }else{
+				 bookingManage.setRemark(""); 
+			 }
+			 
+			 if(createUserId!=null && !"".equals(createUserId)){
+				 bookingManage.setCreateUserId(Integer.parseInt(createUserId));
+			 }
+			 if(bookingStatus!=null && !"".equals(bookingStatus)){
+				 bookingManage.setBookingStatus(bookingStatus);
+			 }
+			 int count = bookingManageService.createOrder(bookingManage);
+			 
+			 BookingManageSwitch bookingManageSwitch= bookingManageService.getRemindSwitch(bookingManage);
+			 
+			 if(bookingManageSwitch!=null&&"1".equals(bookingManageSwitch.getRemindStatus())){
+				 
+//				 bookingManage.setRemindStatus("1");
+//              
+//				 bookingManage.setRemindTime(bookingManageSwitch.getRemindTime());
+				 bacthAddRemindTime(bookingManageSwitch);
+			 }
+			 
+			 if(count > 0){
+				 return Result.success();
+			 }else{
+				 return Result.build(401,WebConstant.FAIL);
+			 }
+			 
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+		 
+	 }
+	 /**
+	  * 6.预约提醒时间设置的同時,批量添加预约提醒时间
+	  */
+
+	 @RequestMapping("/bacthAddRemindTime")
+	 @ResponseBody
+	 public Result bacthAddRemindTime(BookingManageSwitch bookingManageSwitch){
+		try {
+			String remindTime =bookingManageSwitch.getRemindTime();
+			String remindStatus =bookingManageSwitch.getRemindStatus();
+			String storeId = bookingManageSwitch.getStoreId();
+			List<Map<String,String>> beginTimeDB =bookingManageService.getAllBeginAndReminderTime(storeId);
+			if(beginTimeDB.size()==0){
+				 return Result.success();
+			}
+			List<BookingManage> list = new ArrayList<BookingManage>();
+			Date sendTime =null;
+			if("1".equals(remindStatus)){
+				if(beginTimeDB!=null && beginTimeDB.size()>0){
+					for (Map<String, String> map : beginTimeDB) {
+						//当预约提醒时间设置为0.5小时时
+						
+						sendTime = DateUtil.rollMinute(DateUtil.parseStr(map.get("beginTime"),"yyyy-MM-dd HH:mm"),(new BigDecimal(remindTime).multiply(new BigDecimal(60))).intValue());
+						BookingManage booking = new BookingManage();
+						booking.setBeginTime(DateUtil.parseStr(map.get("beginTime"),"yyyy-MM-dd HH:mm"));
+						booking.setSendTime(sendTime);
+//						booking.setRemindTime(remindTime);//設置预约提醒时间
+//						booking.setRemindStatus("1");;//設置预约提醒狀態
+						list.add(booking);
+
+
+					}
+				}
+			}else{
+				for (Map<String, String> map : beginTimeDB) {
+					BookingManage booking = new BookingManage();
+					booking.setBeginTime(DateUtil.parseStr(map.get("beginTime"),"yyyy-MM-dd HH:mm"));
+					booking.setBookingStatus("0");
+					list.add(booking);
+				}
+			}
+			if(list!=null &&list.size()>0){
+				 int count = bookingManageService.bacthAddRemindTime(list);
+				 if(count>0){
+					 return Result.success();
+				 }
+				 else{
+					 return Result.success();
+				 }
+			}else{
+				return Result.success();
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	 
+		@RequestMapping("/updateRemindSwitch")
+		@ResponseBody
+		public Result updateRemindSwitch(BookingManageSwitch bookingManageSwitch) {
+			try {
+				//BookingManage bookingManagenew = bookingManage;
+				
+//				 BookingManageSwitch bookingManageSwitch = new  BookingManageSwitch();
+//				 bookingManageSwitch.setStoreId(bookingManage.getStoreId());
+//				 bookingManageSwitch.setRemindStatus(bookingManage.get);
+				bacthAddRemindTime(bookingManageSwitch);
+				return this.bookingManageService.updateRemindSwitch(bookingManageSwitch);
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return Result.build(500,WebConstant.SYS_ERROR);
+			}
+		}
+	 
+		@RequestMapping("/getRemindSwitch")
+		@ResponseBody
+		public Result getRemindSwitch(BookingManage bookingManage) {
+			try {
+				
+				BookingManageSwitch  bms=	this.bookingManageService.getRemindSwitch(bookingManage);
+				return Result.success(bms);
+			} catch (Exception e) {
+				logger.error(e.getMessage());
+				return Result.build(500,WebConstant.SYS_ERROR);
+			}
+		}
+	 
+}

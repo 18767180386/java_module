@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.UserLoginRecordMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.UserLoginRecord" useGeneratedKeys="true"  keyProperty="id">
+		insert into user_login_record(phone,store_id,login_time,current_status,phone_type,equipment_code,user_id,OS,phone_id) 
+		values(#{phone},#{storeId},#{loginTime},#{currentStatus},#{phoneType},#{equipmentCode},#{userId},#{OS},#{phoneId})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.UserLoginRecord">
+		update user_login_record u
+		<set>
+			<if test="logoutTime !=null ">
+				u.logout_time = #{logoutTime},
+			</if>
+			<if test="onlineTime !=null ">
+				u.online_time = #{onlineTime},
+			</if>
+			<if test="currentStatus !=null ">
+				u.current_status = #{currentStatus},
+			</if>
+		
+		</set>
+		where u.user_id = #{userId}   order by id desc limit 1
+	</update>
+	
+
+	<update id="updateStatus" parameterType="com.aiiju.pojo.UserLoginRecord">
+		update user_login_record u
+		<set>
+		
+			<if test="currentStatus !=null ">
+				u.current_status = 0,
+			</if>
+		
+		</set>
+		where u.user_id = #{userId} 
+	</update>
+
+	 <update id="updateStatusBatch" parameterType="java.util.List">
+		<foreach collection="list" item="UserLoginRecord" index="index" open="" close="" separator=";">
+		update user_login_record
+		<set>
+			current_status =#{UserLoginRecord.currentStatus},
+		</set>
+		where user_id = #{UserLoginRecord.userId}  order by id desc limit 1
+		</foreach>
+	</update>
+
+
+	
+	<sql id="selectSql">
+		id,phone,store_id,login_time,logout_time,online_time,current_status,user_id,equipment_code
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.UserLoginRecord" id="userMap">
+		<id column="id" property="id"/>
+		<result column="phone" property="phone" />
+		<result column="store_id" property="storeId" />
+		<result column="login_time" property="loginTime" />
+		<result column="logout_time" property="logoutTime" />
+		<result column="online_time" property="onlineTime"/>
+		<result column="current_status" property="currentStatus"/>
+		<result column="phone_type" property="phoneType"/>
+		<result column="phone_id" property="phoneId"/>
+		<result column="OS" property="OS"/>
+		<result column="equipment_code" property="equipmentCode"/>
+		<result column="user_id" property="userId"/>
+		
+	</resultMap>
+	
+
+	 <select id="selectByEquipAndPhone" parameterType="com.aiiju.pojo.UserLoginRecord" resultMap="userMap">
+		select 
+			id,phone,store_id,login_time,logout_time,online_time,current_status,user_id,equipment_code
+		 from user_login_record 	 where phone = #{phone} and  equipment_code = #{equipmentCode} order by id desc limit 1
+	</select>
+	
+	<select id="getByPhoneStoreId" parameterType="com.aiiju.pojo.UserLoginRecord" resultMap="userMap">
+		select 
+			id,phone,store_id,login_time,logout_time,online_time,current_status,user_id,equipment_code
+		 from user_login_record 	 where user_id = #{userId}   order by id desc limit 1
+	</select>
+
+	<select id="getOnlineUser"  resultMap="userMap">
+			select id,phone,store_id,login_time,logout_time,online_time,current_status,user_id,equipment_code
+		 from user_login_record 	where current_status= 1
+	</select>
+
+</mapper>

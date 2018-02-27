@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.JPushPhoneAuthMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.JPushPhoneAuth" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="phone_auth_type" property="phoneAuthType" jdbcType="VARCHAR" />
+    <result column="allow_equipment_type" property="allowEquipmentType" jdbcType="VARCHAR" />
+    <result column="not_allow_equipment_type" property="notAllowEquipmentType" jdbcType="VARCHAR" />
+    <result column="is_equipment_auth_type" property="isEquipmentAuthType" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, phone, phone_auth_type, allow_equipment_type, not_allow_equipment_type, is_equipment_auth_type
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from jpush_phone_auth
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectByPhone" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from jpush_phone_auth
+    where phone = #{phone}
+  </select>  
+  
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from jpush_phone_auth
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insertSelective" parameterType="com.aiiju.pojo.JPushPhoneAuth" >
+    insert into jpush_phone_auth
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="phone != null" >
+        phone,
+      </if>
+      <if test="phoneAuthType != null" >
+        phone_auth_type,
+      </if>
+      <if test="allowEquipmentType != null" >
+        allow_equipment_type,
+      </if>
+      <if test="notAllowEquipmentType != null" >
+        not_allow_equipment_type,
+      </if>
+      <if test="isEquipmentAuthType != null" >
+        is_equipment_auth_type,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="phone != null" >
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneAuthType != null" >
+        #{phoneAuthType,jdbcType=VARCHAR},
+      </if>
+      <if test="allowEquipmentType != null" >
+        #{allowEquipmentType,jdbcType=VARCHAR},
+      </if>
+      <if test="notAllowEquipmentType != null" >
+        #{notAllowEquipmentType,jdbcType=VARCHAR},
+      </if>
+      <if test="isEquipmentAuthType != null" >
+        #{isEquipmentAuthType,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.aiiju.pojo.JPushPhoneAuth" >
+    update jpush_phone_auth
+    <set >
+      <if test="phone != null" >
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="phoneAuthType != null" >
+        phone_auth_type = #{phoneAuthType,jdbcType=VARCHAR},
+      </if>
+      <if test="allowEquipmentType != null" >
+        allow_equipment_type = #{allowEquipmentType,jdbcType=VARCHAR},
+      </if>
+      <if test="notAllowEquipmentType != null" >
+        not_allow_equipment_type = #{notAllowEquipmentType,jdbcType=VARCHAR},
+      </if>
+      <if test="isEquipmentAuthType != null" >
+        is_equipment_auth_type = #{isEquipmentAuthType,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+</mapper>

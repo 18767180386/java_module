@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.ReputationAreaCodeMapper">
+
+	<select id="getProvenceCode" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationAreaCode">
+		select area_code ,area_name from reputation_areacode where area_type=2 
+	</select>
+	
+	<select id="getCityCodeByPro" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationAreaCode">
+		select area_code ,area_name from reputation_areacode where area_type=3 and area_parentid=#{proCode}
+	</select>
+	
+	
+	<select id="getDistrictCodeByCity" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationAreaCode">
+		select area_code ,area_name from reputation_areacode where area_type=4 and area_parentid=#{cityCode}
+	</select>
+
+
+     <select id="getValidCode" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationAreaCode">
+		SELECT * from reputation_areacode  where area_type!=5 and area_type!=1 ORDER BY area_code desc
+	</select>
+
+</mapper>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.MCardMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.MCard"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		m_card(name,discount,notice,limit_time,is_past,start_date,end_date,status,type,store_id)
+		values(#{name},#{discount},#{notice},#{limitTime},#{isPast},#{startDate},#{endDate},#{status},#{type},#{storeId})
+	</insert>
+
+	<delete id="delete" parameterType="java.lang.Long">
+		delete from m_card where id =
+		#{id}
+	</delete>
+
+	<update id="update" parameterType="com.aiiju.pojo.MCard">
+		update m_card m
+		<set>
+			<if test="discount != null and discount != '' ">
+				m.discount = #{discount},
+			</if>
+			<if test="notice != null and notice != '' ">
+				m.notice = #{notice},
+			</if>
+			<if test="status != null and status != '' ">
+				m.status = #{status},
+			</if>
+		</set>
+		where m.id = #{id}
+	</update>
+
+	<update id="updateBatch" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open="" close="" separator=";">
+			update m_card
+			<set>
+				status = #{item.status},is_past = #{item.isPast}
+			</set>
+			where id = #{item.id}
+		</foreach>
+	</update>
+
+	<sql id="selectSql">
+		id,name,discount,notice,limit_time,start_date,end_date,status,is_past,type,store_id
+	</sql>
+
+	<resultMap type="com.aiiju.pojo.MCard" id="mcardMap">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="discount" property="discount" />
+		<result column="notice" property="notice" />
+		<result column="limit_time" property="limitTime" />
+		<result column="start_date" property="startDate" />
+		<result column="end_date" property="endDate" />
+		<result column="status" property="status" />
+		<result column="is_past" property="isPast" />
+		<result column="type" property="type" />
+		<result column="code" property="code" />
+		<result column="store_id" property="storeId" />
+	</resultMap>
+
+	<resultMap type="com.aiiju.pojo.MCard" extends="mcardMap" id="mcardWithNumMap">
+		<association column="id" property="num" select="com.aiiju.mapper.MemberMapper.getNum" />
+	</resultMap>
+
+	<select id="getById" parameterType="java.lang.Long" resultMap="mcardMap">
+		select
+		<include refid="selectSql"></include>
+		from m_card where id = #{id}
+	</select>
+
+	<select id="getWithObjectById" parameterType="java.lang.Long"
+		resultMap="mcardWithNumMap">
+		select
+		<include refid="selectSql"></include>
+		from m_card where id = #{id}
+	</select>
+
+	<select id="getAllByStoreId" parameterType="java.lang.String"
+		resultMap="mcardWithNumMap">
+		select
+		<include refid="selectSql"></include>
+		from m_card where store_id = #{storeId}
+	</select>
+
+	<resultMap type="com.aiiju.pojo.MCard" id="mcardMap2">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="discount" property="discount" />
+		<result column="limit_time" property="limitTime" />
+		<result column="start_date" property="startDate" />
+		<result column="end_date" property="endDate" />
+		<result column="status" property="status" />
+		<result column="type" property="type" />
+		<result column="code" property="code" />
+	</resultMap>
+
+	<select id="getByMemberId" parameterType="java.lang.Long"
+		resultMap="mcardMap2">
+		select
+			c.id,c.name,c.discount,c.limit_time,c.start_date,c.end_date,c.status,mmc.code
+		from member_m_card mmc inner join m_card c on mmc.m_card_id = c.id
+		where mmc.member_id = #{memberId}
+	</select>
+
+	<select id="getLimitMCardList" resultType="com.aiiju.pojo.MCard">
+		select id,start_date startDate,end_date endDate from m_card where limit_time = 2 and is_past = 1
+	</select>
+
+</mapper>

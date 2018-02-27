@@ -1,0 +1,111 @@
+package com.aiiju.store.service;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.pojo.BookingManage;
+import com.aiiju.pojo.BookingManageSwitch;
+import com.aiiju.pojo.JPush;
+import com.aiiju.pojo.User;
+
+/** 
+ * @ClassName BookingManageService
+ * @Description 预约管理service
+ * @author 乔巴
+ * @CreateDate 2017年8月23日
+ */
+public interface BookingManageService {
+
+	/**
+	 * 获取预约管理列表
+	 */
+	List<Map<String, Object>> getBoookingManageList(String status,String startDate,String endDate,
+			String phone,String keyWord,Integer pageNum, Integer pageSize,String storeId);
+	
+	/**
+	 * 根据id查询预约单详情
+	 */
+	List<Map<String,Object>> getBookingManageById(Long id);
+	
+	/**
+	 * 根据id编辑预约单
+	 */
+	int updateById(BookingManage bookingManage);
+	
+	/**
+	 * 根据id删除预约单
+	 */
+	int deleteById(Long id);
+	
+	/**
+	 * 创建预约单之前先查询出来，上次创建预约单的开始和结束时间 -- 获取最新的预约单开始和结束时间
+	 */
+	Map<String,Date> getRecentTime(String storeId,String phone);
+	
+	/**
+	 * 创建预约单
+	 * @param bookingManage
+	 * @return
+	 */
+	int createOrder(BookingManage bookingManage);
+	/**
+	 * 获取总计金额
+	 */
+	Map<String,String> getTotalAmount(String status,String storeId,String startDate,String endDate,
+			String phone,String keyWord);
+	/**
+	 * 获取所有的预约时间和预约提醒时间
+	 */
+	List<Map<String,String>> getAllBeginAndReminderTime(String storeId); 
+	/**
+	 *批量添加预约提醒时间 
+	 */
+	int bacthAddRemindTime(List<BookingManage> list);
+	/**
+	 * 获取所有纹身师的设备型号和手机类型
+	 */
+	List<Map<String,String>>getDrawerEquipmentCode();
+	/**
+	 * 获取所有的纹身师和客户的设备型号和手机类型
+	 */
+	List<Map<String,String>>getDrawerAndCustomerCode();
+	/**
+	 * 获取当前所有预约单中需要提醒的订单的订单状态
+	 */
+	List<Map<String,String>>getRemindStatus(String storeId);
+	/**
+	 * 根据预约提醒时间批量设置推送状态
+	 */
+	int bacthSetByRemindTime(List<BookingManage> list);
+	/**
+	 * 根据开始时间批量设置推送状态
+	 */
+	int bacthSetByBeginTime(List<BookingManage> list);
+	/**
+	 * 获取预约提醒推送订单的id
+	 */
+	Map<String,Object> getIdBySendTime(String sendTime);
+	/**
+	 *  获取预约开始推送订单的id
+	 */
+	Map<String,Object> getIdByBeginTime(String beginTime);
+	
+	
+	List<BookingManage> findAllBookingManage();
+	
+	void updatePushsStatusById(long id);
+	void updateSendStatusById(long id);
+	
+	List<JPush> getJPushListByPhone(String phone);
+	
+     
+	List<User> getCustomerFromUserByStoreId(String storeId);
+	
+	public Result updateRemindSwitch(BookingManage bookingManage);
+	
+	public BookingManageSwitch getRemindSwitch(BookingManage bookingManage);
+	
+	
+}

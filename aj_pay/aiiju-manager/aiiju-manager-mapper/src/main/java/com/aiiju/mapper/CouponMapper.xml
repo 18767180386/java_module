@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.CouponMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Coupon" useGeneratedKeys="true"  keyProperty="id">
+		insert into coupon(name,num,coupon_value,use_date,expire_date,limit_num,is_notice,is_share,remark,time_status,use_status,store_id) 
+		values(#{name},#{num},#{couponValue},#{useDate},#{expireDate},#{limitNum},#{isNotice},#{isShare},#{remark},#{timeStatus},#{useStatus},#{storeId})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.Coupon">
+		update coupon c
+		<set>
+			<if test="num != null">
+				c.num = #{num},
+			</if>
+			<if test="isNotice != null">
+				c.is_notice = #{isNotice},
+			</if>
+			<if test="isShare != null">
+				c.is_share = #{isShare},
+			</if>
+			<if test="remark != null">
+				c.remark = #{remark},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	
+	<sql id="selectSql">
+		id,name,num,coupon_value,use_date,expire_date,limit_num,is_notice,is_share,remark,time_status,use_status
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.Coupon" id="couponMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name" />
+		<result column="num" property="num" />
+		<result column="coupon_value" property="couponValue" />
+		<result column="use_date" property="useDate" />
+		<result column="expire_date" property="expireDate" />
+		<result column="limit_num" property="limitNum" />
+		<result column="is_notice" property="isNotice" />
+		<result column="is_share" property="isShare" />
+		<result column="remark" property="remark" />
+		<result column="time_status" property="timeStatus" />
+		<result column="use_status" property="useStatus" />
+	</resultMap>
+	
+	<select id="getById" parameterType="java.lang.Long" resultMap="couponMap">
+		select 
+			<include refid="selectSql"></include>
+		 from coupon where id = #{id}
+	</select>
+	
+	<select id="getAllByStoreId" parameterType="java.lang.Integer" resultMap="couponMap">
+		select 
+			<include refid="selectSql"></include>
+		 from coupon c where c.store_id = #{storeId}
+		  <if test="timeStatus != null">
+		 	and c.time_status = #{timeStatus}
+		 </if>
+	</select>
+	
+	<select id="getByMemberId" parameterType="java.lang.Long" resultMap="couponMap">
+		select 
+			c.id,c.name,c.coupon_value
+		from coupon_member cm inner join coupon c on cm.coupon_id = c.id
+		where cm.member_id = #{memberId}
+	</select>
+	
+</mapper>

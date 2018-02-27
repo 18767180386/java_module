@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.CategoryMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Category" useGeneratedKeys="true"  keyProperty="id">
+		insert into category(name,store_id,image_type) values(#{name},#{storeId},#{imageType})
+	</insert>
+	
+	
+	<delete id="deleteById" parameterType="java.lang.Long">
+		delete from category where id = #{id}
+	</delete>
+	
+	<select id="getAllByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.Category">
+		select id,name,image_type imageType from category where store_id = #{storeId}
+	</select>
+
+</mapper>

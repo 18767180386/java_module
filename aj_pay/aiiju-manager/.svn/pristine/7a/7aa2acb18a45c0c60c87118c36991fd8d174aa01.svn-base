@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.WxSubMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.WxSub" useGeneratedKeys="true"  keyProperty="id">
+		insert into wx_sub(sub_mch_id,sub_app_id,store_id)
+		 values(#{subMchId},#{subAppId},#{storeId})
+	</insert>
+	
+	<delete id="delete">
+		delete from wx_sub where id = #{id}
+	</delete>
+	
+	<delete id="deleteByStoreId">
+		delete from wx_sub where store_id = #{storeId}
+	</delete>
+	
+	<select id="getByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.WxSub">
+		select
+			id,sub_mch_id subMchId,sub_app_id subAppId,store_id storeId
+		 from wx_sub where store_id = #{storeId}
+	</select>
+	
+	
+
+</mapper>

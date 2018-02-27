@@ -1,0 +1,142 @@
+package com.aiiju.pojo;
+
+import java.io.Serializable;
+import java.util.Date;
+
+/**
+ * 
+ * @ClassName: JPush 
+ * @Description: 消息推送
+ * @author 小飞 
+ * @date 2016年12月20日 上午11:55:02 
+ *
+ */
+public class JPush implements Serializable{
+
+	private static final long serialVersionUID = -5867794646629763398L;
+	
+	private Long id;
+	/**
+	 * 店铺操作员编号
+	 */
+	private String operatorId;
+	/**
+	 * 设备号
+	 */
+	private String equipmentCode;
+	/**
+	 * 店铺编号
+	 */
+	private String storeId;
+
+	/**
+	 * 是否在线
+	 */
+	private String status;
+	
+    private Date createDate;
+
+    private Date modifyDate;
+    
+    
+    private String phoneType;
+    
+    private String phone;
+    
+    
+    private String phoneHostName;
+    
+    private String msg;
+    
+    private String msgType;
+    
+    private String envType;
+    
+    
+    
+    
+    
+    
+
+	public String getEnvType() {
+		return envType;
+	}
+	public void setEnvType(String envType) {
+		this.envType = envType;
+	}
+	public String getMsgType() {
+		return msgType;
+	}
+	public void setMsgType(String msgType) {
+		this.msgType = msgType;
+	}
+	public String getMsg() {
+		return msg;
+	}
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
+	public String getPhoneHostName() {
+		return phoneHostName;
+	}
+	public void setPhoneHostName(String phoneHostName) {
+		this.phoneHostName = phoneHostName;
+	}
+	public String getPhone() {
+		return phone;
+	}
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+	public String getPhoneType() {
+		return phoneType;
+	}
+	public void setPhoneType(String phoneType) {
+		this.phoneType = phoneType;
+	}
+	public Date getCreateDate() {
+		return createDate;
+	}
+	public void setCreateDate(Date createDate) {
+		this.createDate = createDate;
+	}
+	public Date getModifyDate() {
+		return modifyDate;
+	}
+	public void setModifyDate(Date modifyDate) {
+		this.modifyDate = modifyDate;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getOperatorId() {
+		return operatorId;
+	}
+	public void setOperatorId(String operatorId) {
+		this.operatorId = operatorId;
+	}
+	public String getEquipmentCode() {
+		return equipmentCode;
+	}
+	public void setEquipmentCode(String equipmentCode) {
+		this.equipmentCode = equipmentCode;
+	}
+	public String getStoreId() {
+		return storeId;
+	}
+	public void setStoreId(String storeId) {
+		this.storeId = storeId;
+	}
+
+	
+	
+}

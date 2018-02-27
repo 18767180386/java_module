@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.UserMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.User" useGeneratedKeys="true"  keyProperty="id">
+		insert into user(user_name,password,phone,shop_id,store_id,role,operator_id,old_store_id,parent_store_id,creator,is_activate,create_date,is_delete) 
+		values(#{userName},#{password},#{phone},#{shopId},#{storeId},#{role},#{operatorId},#{oldStoreId},#{parentStoreId},#{creator},#{isActivate},#{createDate},#{isDelete})
+	</insert>
+	
+	
+	<insert id="addClerk" parameterType="com.aiiju.pojo.User" useGeneratedKeys="true"  keyProperty="id">
+		insert into user(user_name,phone,shop_id,store_id,role,operator_id,parent_store_id,creator,is_activate,create_date,is_delete) 
+		values(#{userName},#{phone},#{shopId},#{storeId},#{role},#{operatorId},#{parentStoreId},#{creator},#{isActivate},#{createDate},#{isDelete})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.User">
+		update user u
+		<set>
+			<if test="role !=null ">
+				u.role = #{role},
+			</if>
+			<if test="operatorId !=null ">
+				u.operator_id = #{operatorId},
+			</if>
+			<if test="storeId !=null ">
+				u.store_id = #{storeId},
+			</if>
+			<if test="oldStoreId !=null ">
+				u.old_store_id = #{oldStoreId},
+			</if>
+				<if test="userName !=null ">
+				u.user_name = #{userName},
+			</if>
+		</set>
+		where u.id = #{id} 
+	</update>
+	
+	<update id="updateIsActivate" parameterType="com.aiiju.pojo.User">
+		update user u set u.is_activate =1 where u.id = #{id} 
+	</update>
+	
+	
+	<update id="updateClerk" parameterType="com.aiiju.pojo.User">
+		update user u
+		<set>
+			<if test="role !=null ">
+				u.role = #{role},
+			</if>
+			<if test="userName !=null ">
+				u.user_name = #{userName},
+			</if>
+		</set>
+		where u.id = #{id} 
+	</update>
+	
+	<update id="updateClerkPassword" parameterType="com.aiiju.pojo.User">
+		update user u
+		<set>
+			<if test="password !=null ">
+				u.password = #{password},
+			</if>
+	
+		</set>
+		where u.phone = #{phone} and u.store_id = #{storeId}
+	</update>
+	
+	
+	<select id="selectHave" parameterType="com.aiiju.pojo.User" resultType="java.lang.Integer">
+		select count(*) from user where id != #{id} and role=1 and store_id = #{storeId} and is_delete=0
+	</select>
+	
+	<select id="queryIsExistRoleIs1" parameterType="com.aiiju.pojo.User" resultType="java.lang.Integer">
+		select count(*) from user where  store_id = #{storeId} and is_delete=0 and role=1
+	</select>
+	
+	
+	<update id="deleteClerk" parameterType="com.aiiju.pojo.User">
+		update user set is_delete =1 where id = #{id}
+	</update>
+	
+	
+	<update id="updatePWD" parameterType="com.aiiju.pojo.User">
+		update user set password = #{password} where user_name = #{userName} and is_delete=0
+	</update>
+	
+	<update id="updateOnShop" parameterType="com.aiiju.pojo.User">
+		update user set store_id = #{storeId},operator_id = #{operatorId},role = #{role} where id = #{id} 
+	</update>
+	
+	<sql id="selectSql">
+		id,user_name,phone,password,email,shop_id,store_id,role,operator_id,create_date,modify_date,parent_store_id,is_activate,is_delete
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.User" id="userMap">
+		<id column="id" property="id"/>
+		<result column="user_name" property="userName" />
+		<result column="phone" property="phone" />
+		<result column="email" property="email" />
+		<result column="password" property="password" />
+		<result column="shop_id" property="shopId" />
+	    <result column="parent_store_id" property="parentStoreId" />
+		<result column="store_id" property="storeId" />
+		<result column="role" property="role" />
+		<result column="operator_id" property="operatorId" />
+		<result column="create_date" property="createDate"/>
+		<result column="modify_date" property="modifyDate"/>
+		<result column="creator" property="creator"/>
+		<result column="is_activate" property="isActivate"/>
+		<result column="is_delete" property="isDelete"/>
+		
+	</resultMap>
+	
+	<resultMap type="com.aiiju.pojo.User" id="userShopMap" extends="userMap">
+		<association property="shop" column="store_id" select="com.aiiju.mapper.ShopMapper.getByStoreId"></association>
+		<association property="managerPhone" column="parent_store_id" select="com.aiiju.mapper.UserMapper.getManagerPhone"></association>
+	</resultMap>
+	
+	<select id="getManagerPhone" parameterType="java.lang.String" resultType="java.lang.String">
+		select phone
+		 from user where store_id = #{parentStoreId} and store_id = parent_store_id and is_delete=0 and role=0
+	</select>
+	
+	<select id="getById" parameterType="java.lang.Long" resultMap="userMap">
+		select 
+			id,user_name,phone,email,shop_id,store_id,role,operator_id,create_date,modify_date,parent_store_id
+		 from user where id = #{id} and is_delete=0
+	</select>
+
+	<select id="getAllByStoreId" parameterType="java.lang.String" resultMap="userMap">
+		select
+			id,user_name,phone,email,shop_id,store_id,role,operator_id,create_date,modify_date,parent_store_id
+		 from user where store_id = #{storeId} and is_delete=0
+	</select>
+	
+	<select id="checkByUserNameWithoutShop" parameterType="java.lang.String" resultMap="userMap">
+		select 
+			<include refid="selectSql"></include>
+		 from user where user_name = #{userName}  and is_delete=0 limit 1
+	</select>
+	
+	
+	
+	
+	<select id="checkByUserName" parameterType="java.lang.String" resultMap="userShopMap">
+		select 
+			<include refid="selectSql"></include>
+		 from user where user_name = #{userName} and is_delete=0 limit 1
+	</select>
+	
+	<select id="checkByPhone" parameterType="java.lang.String" resultMap="userShopMap">
+		select 
+			<include refid="selectSql"></include>
+		 from user where phone = #{phone} and is_delete=0
+	</select>
+	
+    <select id="getUserByPhoneAndStoreId" parameterType="com.aiiju.pojo.User" resultType="com.aiiju.pojo.User">
+		select id,password from user where phone = #{phone}  and store_id =#{storeId} and  is_delete=0
+	</select>
+	
+	
+	<select id="checkByEmail" parameterType="java.lang.String" resultMap="userShopMap">
+		select 
+			<include refid="selectSql"></include>
+		 from user where email = #{email} and is_delete=0
+	</select>
+	
+	<select id="checkByNickName" parameterType="java.lang.String" resultMap="userMap">
+		select 
+			<include refid="selectSql"></include>
+		 from user where nick_name = #{nickName} and is_delete=0
+	</select>
+	
+	<select id="getUserName" parameterType="java.lang.Long" resultType="com.aiiju.pojo.User">
+		select user_name from user where id = #{id} and is_delete=0
+	</select>
+	
+	<select id="getClerkListByParentStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.User">
+		select * from user where parent_store_id = #{storeId} and is_delete=0
+	</select>
+	 <select id="getByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.User">
+		select id,user_name as userName,role,phone,is_activate  as isActivate from user where store_id = #{storeId} and is_delete=0 order by create_date asc
+	</select>
+	
+    <select id="clerkListIsActivateByParentStoreId" parameterType="java.lang.String" resultMap="userShopMap">
+    select `user`.id,`user`.operator_id,`user`.store_id,`user`.user_name as userName,`user`.role,`user`.phone,`user`.is_activate  as isActivate 
+from user,shop where `user`.parent_store_id = #{storeId} and `user`.is_delete=0  and `user`.is_activate=1 and `user`.store_id=shop.store_id and shop.shop_type!=2
+  
+	</select>
+	    <select id="clerkListIsActivateByStoreId" parameterType="java.lang.String" resultMap="userShopMap">
+		select id,operator_id,store_id,user_name as userName,role,phone,is_activate  as isActivate from user where store_id = #{storeId} and is_delete=0 and is_activate=1
+	</select>
+	<select id="getUserByOperatorId" parameterType="java.lang.String" resultType="com.aiiju.pojo.User">
+		select id,operator_id as operatorId,user_name as userName,old_store_id as oldStoreId ,parent_store_id parentStoreId from user where operator_id = #{operatorId} and is_delete=0
+	</select>
+	
+	<select id="getShareUserList" parameterType="java.lang.Long" resultType="com.aiiju.pojo.User">
+		select u.id,u.user_name as userName,u.operator_id operatorId from user u left join shop_account_user sau on u.operator_id= sau.operator_id 
+		where sau.shop_account_id=#{shopAccountId} and is_delete=0
+	</select>
+</mapper>

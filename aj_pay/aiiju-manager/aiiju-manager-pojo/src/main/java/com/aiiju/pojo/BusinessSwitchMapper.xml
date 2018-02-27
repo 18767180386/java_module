@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.BusinessSwitchMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.BusinessSwitch" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="switch_name" property="switchName" jdbcType="VARCHAR" />
+    <result column="swith_status" property="swithStatus" jdbcType="VARCHAR" />
+    <result column="switch_store_id" property="switchStoreId" jdbcType="VARCHAR" />
+    <result column="switch_remark" property="switchRemark" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, switch_name, swith_status, switch_store_id, switch_remark, remark
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from business_switch
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+    <select id="selectBySwtichName" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from business_switch
+    where switch_name = #{switchName}
+  </select>
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from business_switch
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insertSelective" parameterType="com.aiiju.pojo.BusinessSwitch" >
+    insert into business_switch
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="switchName != null" >
+        switch_name,
+      </if>
+      <if test="swithStatus != null" >
+        swith_status,
+      </if>
+      <if test="switchStoreId != null" >
+        switch_store_id,
+      </if>
+      <if test="switchRemark != null" >
+        switch_remark,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="switchName != null" >
+        #{switchName,jdbcType=VARCHAR},
+      </if>
+      <if test="swithStatus != null" >
+        #{swithStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="switchStoreId != null" >
+        #{switchStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="switchRemark != null" >
+        #{switchRemark,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.aiiju.pojo.BusinessSwitch" >
+    update business_switch
+    <set >
+      <if test="switchName != null" >
+        switch_name = #{switchName,jdbcType=VARCHAR},
+      </if>
+      <if test="swithStatus != null" >
+        swith_status = #{swithStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="switchStoreId != null" >
+        switch_store_id = #{switchStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="switchRemark != null" >
+        switch_remark = #{switchRemark,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+</mapper>

@@ -1,0 +1,111 @@
+package com.aiiju.common.util;
+
+import java.util.List;
+
+import cn.jpush.api.JPushClient;
+import cn.jpush.api.push.PushResult;
+import cn.jpush.api.push.model.Platform;
+import cn.jpush.api.push.model.PushPayload;
+import cn.jpush.api.push.model.audience.Audience;
+import cn.jpush.api.push.model.notification.AndroidNotification;
+import cn.jpush.api.push.model.notification.IosNotification;
+import cn.jpush.api.push.model.notification.Notification;
+
+/**
+ * 
+ * @ClassName: PushUtil
+ * @Description: 极光推送工具类
+ * @author 小飞
+ * @date 2016年12月20日 下午1:46:44
+ *
+ */
+public class JPushUtil {
+    private static String appKey = "3e000b01554ab8a86763ed94";
+
+    private static String masterSecret = "72ae0edc92d18814193e3fad";
+
+    private static JPushClient jpushClient = null;
+
+    public static final String INVITE = "invite";
+
+    public static final String PAYMENT = "payment";
+
+    public static final String REFUND = "refund";
+
+    public static final String UNBIND = "unbind";
+
+//    public static final String KICK = "kick";// 与noLogin 合并，此废弃
+    
+    public static final String DELETECLERK = "deleteClerk";  // 删除员工
+    
+    public static final String NOLOGIN = "noLogin";  //设备被禁止登录
+    
+    public static final String ISONLINE = "isOnline";
+    
+    public static final String  ISBOOKING="isBooking";//预约推送
+
+    private JPushUtil() {
+    }
+
+    /**
+     * 发送消息
+     * 
+     * @param registrationID
+     * @return
+     */
+    public static Boolean sendMsg(List<String> registrationID, String msg, String msgJson) {
+        boolean flag = false;
+        try {
+            jpushClient = new JPushClient(masterSecret, appKey);// 消息默认保留一天
+            PushResult result = jpushClient
+                    .sendPush(buildPushObject_all_all_regesterIds(registrationID, msg, msgJson));
+            if (result != null) {
+                flag = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            flag = false;
+        }
+        return flag;
+    }
+    
+    /**
+     * 发送消息 android 平板
+     * 
+     * @param registrationID
+     * @return
+     */
+    public static Boolean sendMsgHD(List<String> registrationID, String msg, String msgJson) {
+        boolean flag = false;
+        try {
+        	
+        	String secretHD = "6eafe0c71c3056d6a674b189";
+        	String appKeyHD = "95f28e79020e1c8c5400466d";
+        		
+            jpushClient = new JPushClient(secretHD, appKeyHD);// 消息默认保留一天
+            PushResult result = jpushClient
+                    .sendPush(buildPushObject_all_all_regesterIds(registrationID, msg, msgJson));
+            if (result != null) {
+                flag = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            flag = false;
+        }
+        return flag;
+    }
+
+    private static PushPayload buildPushObject_all_all_regesterIds(List<String> registrationIDs, String msg,
+            String msgJson) {
+        return PushPayload.newBuilder().setPlatform(Platform.android_ios())
+                .setAudience(Audience.registrationId(registrationIDs))
+                .setNotification(Notification.newBuilder()
+                        .addPlatformNotification(AndroidNotification.newBuilder().setAlert(msg).setTitle("")
+                                .addExtra("json", msgJson).build())
+                        .addPlatformNotification(IosNotification.newBuilder().setAlert(msg).incrBadge(1)
+                                .addExtra("json", msgJson).build())
+                        .build())
+                .build();
+
+    }
+}

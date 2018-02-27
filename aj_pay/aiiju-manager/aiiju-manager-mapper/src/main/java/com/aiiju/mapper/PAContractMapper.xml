@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.PAContractMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.PAContract" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="store_id" property="storeId" jdbcType="VARCHAR" />
+    <result column="parent_store_id" property="parentStoreId" jdbcType="VARCHAR" />
+    <result column="ctt_id" property="cttId" jdbcType="VARCHAR" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="sdate" property="sdate" jdbcType="VARCHAR" />
+    <result column="edate" property="edate" jdbcType="VARCHAR" />
+    <result column="pmt_id" property="pmtId" jdbcType="VARCHAR" />
+    <result column="pmt_type" property="pmtType" jdbcType="VARCHAR" />
+    <result column="pmt_tag" property="pmtTag" jdbcType="VARCHAR" />
+    <result column="pmt_name" property="pmtName" jdbcType="VARCHAR" />
+    <result column="pmt_internal_name" property="pmtInternalName" jdbcType="VARCHAR" />
+    <result column="pmf_id" property="pmfId" jdbcType="VARCHAR" />
+    <result column="pmf_name" property="pmfName" jdbcType="VARCHAR" />
+    <result column="fee" property="fee" jdbcType="VARCHAR" />
+    <result column="pmf_limit" property="pmfLimit" jdbcType="VARCHAR" />
+    <result column="add_time" property="addTime" jdbcType="TIMESTAMP" />
+    <result column="upd_time" property="updTime" jdbcType="TIMESTAMP" />
+    <result column="agent_no" property="agentNo" jdbcType="VARCHAR" />
+    <result column="agent_name" property="agentName" jdbcType="VARCHAR" />
+    <result column="sign_man" property="signMan" jdbcType="VARCHAR" />
+    <result column="sign_date" property="signDate" jdbcType="VARCHAR" />
+    <result column="shop_count" property="shopCount" jdbcType="VARCHAR" />
+    <result column="auto_sign" property="autoSign" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="contract_pic1" property="contractPic1" jdbcType="VARCHAR" />
+    <result column="contract_pic2" property="contractPic2" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, store_id, parent_store_id, ctt_id, code, sdate, edate, pmt_id, pmt_type, pmt_tag, 
+    pmt_name, pmt_internal_name, pmf_id, pmf_name, fee, pmf_limit, add_time, upd_time, 
+    agent_no, agent_name, sign_man, sign_date, shop_count, auto_sign, status, contract_pic1, 
+    contract_pic2, remark
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_contract
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+   <select id="getByCttId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_contract
+    where ctt_id = #{cttId}
+  </select>
+  
+  
+    <select id="getMerchantByMctNo" resultType="com.aiiju.pojo.PAMerchant" parameterType="java.lang.String" >
+    select store_id as storeId, parent_store_id as parentStoreId from pa_merchant
+    where mct_no = #{mctNo}
+  </select>
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from pa_contract
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+ 
+ 
+ 
+ 
+  <insert id="add" parameterType="com.aiiju.pojo.PAContract" >
+    insert into pa_contract
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="storeId != null" >
+        store_id,
+      </if>
+      <if test="parentStoreId != null" >
+        parent_store_id,
+      </if>
+      <if test="cttId != null" >
+        ctt_id,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="sdate != null" >
+        sdate,
+      </if>
+      <if test="edate != null" >
+        edate,
+      </if>
+      <if test="pmtId != null" >
+        pmt_id,
+      </if>
+      <if test="pmtType != null" >
+        pmt_type,
+      </if>
+      <if test="pmtTag != null" >
+        pmt_tag,
+      </if>
+      <if test="pmtName != null" >
+        pmt_name,
+      </if>
+      <if test="pmtInternalName != null" >
+        pmt_internal_name,
+      </if>
+      <if test="pmfId != null" >
+        pmf_id,
+      </if>
+      <if test="pmfName != null" >
+        pmf_name,
+      </if>
+      <if test="fee != null" >
+        fee,
+      </if>
+      <if test="pmfLimit != null" >
+        pmf_limit,
+      </if>
+      <if test="addTime != null" >
+        add_time,
+      </if>
+      <if test="updTime != null" >
+        upd_time,
+      </if>
+      <if test="agentNo != null" >
+        agent_no,
+      </if>
+      <if test="agentName != null" >
+        agent_name,
+      </if>
+      <if test="signMan != null" >
+        sign_man,
+      </if>
+      <if test="signDate != null" >
+        sign_date,
+      </if>
+      <if test="shopCount != null" >
+        shop_count,
+      </if>
+      <if test="autoSign != null" >
+        auto_sign,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="contractPic1 != null" >
+        contract_pic1,
+      </if>
+      <if test="contractPic2 != null" >
+        contract_pic2,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="storeId != null" >
+        #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="parentStoreId != null" >
+        #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="cttId != null" >
+        #{cttId,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="sdate != null" >
+        #{sdate,jdbcType=VARCHAR},
+      </if>
+      <if test="edate != null" >
+        #{edate,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtId != null" >
+        #{pmtId,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtType != null" >
+        #{pmtType,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtTag != null" >
+        #{pmtTag,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtName != null" >
+        #{pmtName,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtInternalName != null" >
+        #{pmtInternalName,jdbcType=VARCHAR},
+      </if>
+      <if test="pmfId != null" >
+        #{pmfId,jdbcType=VARCHAR},
+      </if>
+      <if test="pmfName != null" >
+        #{pmfName,jdbcType=VARCHAR},
+      </if>
+      <if test="fee != null" >
+        #{fee,jdbcType=VARCHAR},
+      </if>
+      <if test="pmfLimit != null" >
+        #{pmfLimit,jdbcType=VARCHAR},
+      </if>
+      <if test="addTime != null" >
+        #{addTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updTime != null" >
+        #{updTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="agentNo != null" >
+        #{agentNo,jdbcType=VARCHAR},
+      </if>
+      <if test="agentName != null" >
+        #{agentName,jdbcType=VARCHAR},
+      </if>
+      <if test="signMan != null" >
+        #{signMan,jdbcType=VARCHAR},
+      </if>
+      <if test="signDate != null" >
+        #{signDate,jdbcType=VARCHAR},
+      </if>
+      <if test="shopCount != null" >
+        #{shopCount,jdbcType=VARCHAR},
+      </if>
+      <if test="autoSign != null" >
+        #{autoSign,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="contractPic1 != null" >
+        #{contractPic1,jdbcType=VARCHAR},
+      </if>
+      <if test="contractPic2 != null" >
+        #{contractPic2,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="update" parameterType="com.aiiju.pojo.PAContract" >
+    update pa_contract
+    <set >
+      <if test="storeId != null" >
+        store_id = #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="parentStoreId != null" >
+        parent_store_id = #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="cttId != null" >
+        ctt_id = #{cttId,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="sdate != null" >
+        sdate = #{sdate,jdbcType=VARCHAR},
+      </if>
+      <if test="edate != null" >
+        edate = #{edate,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtId != null" >
+        pmt_id = #{pmtId,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtType != null" >
+        pmt_type = #{pmtType,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtTag != null" >
+        pmt_tag = #{pmtTag,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtName != null" >
+        pmt_name = #{pmtName,jdbcType=VARCHAR},
+      </if>
+      <if test="pmtInternalName != null" >
+        pmt_internal_name = #{pmtInternalName,jdbcType=VARCHAR},
+      </if>
+      <if test="pmfId != null" >
+        pmf_id = #{pmfId,jdbcType=VARCHAR},
+      </if>
+      <if test="pmfName != null" >
+        pmf_name = #{pmfName,jdbcType=VARCHAR},
+      </if>
+      <if test="fee != null" >
+        fee = #{fee,jdbcType=VARCHAR},
+      </if>
+      <if test="pmfLimit != null" >
+        pmf_limit = #{pmfLimit,jdbcType=VARCHAR},
+      </if>
+      <if test="addTime != null" >
+        add_time = #{addTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updTime != null" >
+        upd_time = #{updTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="agentNo != null" >
+        agent_no = #{agentNo,jdbcType=VARCHAR},
+      </if>
+      <if test="agentName != null" >
+        agent_name = #{agentName,jdbcType=VARCHAR},
+      </if>
+      <if test="signMan != null" >
+        sign_man = #{signMan,jdbcType=VARCHAR},
+      </if>
+      <if test="signDate != null" >
+        sign_date = #{signDate,jdbcType=VARCHAR},
+      </if>
+      <if test="shopCount != null" >
+        shop_count = #{shopCount,jdbcType=VARCHAR},
+      </if>
+      <if test="autoSign != null" >
+        auto_sign = #{autoSign,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="contractPic1 != null" >
+        contract_pic1 = #{contractPic1,jdbcType=VARCHAR},
+      </if>
+      <if test="contractPic2 != null" >
+        contract_pic2 = #{contractPic2,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+ 
+</mapper>

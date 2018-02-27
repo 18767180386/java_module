@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.ItemMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Item" useGeneratedKeys="true"  keyProperty="id">
+		insert into item(account_id,category_name,money,type,account_type,image_type,remark,operator_name,operator_id,date,create_date,modify_date,store_id)
+		values(#{accountId},#{categoryName},#{money},#{type},#{accountType},#{imageType},#{remark},#{operatorName},#{operatorId},#{date},#{createDate},#{createDate},#{storeId})
+	</insert>
+	
+	
+	<update id="update" parameterType="com.aiiju.pojo.Item">
+		update item
+		<set>
+			<if test="categoryName != null and categoryName !=''">
+				category_name = #{categoryName},
+			</if>
+			<if test="money != null and money !=''">
+				money = #{money},
+			</if>
+			<if test="accountType != null and accountType !=''">
+				account_type = #{accountType},
+			</if>
+			<if test="imageType != null and imageType !=''">
+				image_type = #{imageType},
+			</if>
+			<if test="remark != null and remark !=''">
+				remark = #{remark},
+			</if>
+			<if test="modifyDate != null and modifyDate !=''">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="date != null and date !=''">
+				date = #{date},
+			</if>
+			<if test="type != null and type !=''">
+				type = #{type},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteById" parameterType="java.lang.Long">
+		delete from item where id = #{id}
+	</delete>
+	
+	
+	<sql id="selectSql">
+		id,category_name,account_id,money,type,account_type,image_type,remark,operator_name,operator_id,date,create_date,modify_date
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.Item" id="itemMap">
+		<id column="id" property="id"/>
+		<result column="category_name" property="categoryName" />
+		<result column="account_id" property="accountId" />
+		<result column="money" property="money" />
+		<result column="type" property="type" />
+		<result column="account_type" property="accountType" />
+		<result column="image_type" property="imageType" />
+		<result column="remark" property="remark" />
+		<result column="operator_name" property="operatorName" />
+		<result column="operator_id" property="operatorId" />
+		<result column="date" property="date" />
+		<result column="create_date" property="createDate" />
+		<result column="modify_date" property="modifyDate" />
+	</resultMap>
+	
+	<select id="getById" parameterType="java.lang.Long" resultMap="itemMap">
+		select
+			<include refid="selectSql"></include>
+		 from item where id = #{id}
+	</select>
+	
+	<select id="getPageByAccountId" parameterType="java.util.Map" resultMap="itemMap">
+		select
+			<include refid="selectSql"></include>
+		 from item where account_id = #{accountId} order by modify_date desc limit #{index},#{pageSize} 
+	</select>
+	
+	<select id="getPageByDate" parameterType="java.util.Map" resultMap="itemMap">
+		select
+			<include refid="selectSql"></include>
+		 from item where account_id = #{accountId} and date=#{date} order by modify_date desc limit #{index},#{pageSize} 
+	</select>
+	
+	
+	<select id="getAllItemDaySum" parameterType="java.lang.Long"  resultType="com.aiiju.pojo.Item">
+		select   sum(money) money,date,CONCAT_WS("_",date,type) remark from item  where account_id = #{accountId}  group by date ,type  ;
+	</select>
+	
+	<select id="getItemSum" parameterType="java.util.Map"  resultType="com.aiiju.pojo.Item">
+		select sum(i.money) money,i.type type from item i where i.account_id = #{accountId} and date_format(i.date,'%Y-%m') = #{date} group by i.type;
+	</select>
+	
+	<select id="getItemDaySum" parameterType="java.util.Map"  resultType="com.aiiju.pojo.Item">
+		select sum(i.money) money,i.type type from item i where i.account_id = #{accountId} and date_format(i.date,'%Y-%m-%d') = #{date} group by i.type;
+	</select>
+	
+	
+    <select id="getItemSumGroupByDay" parameterType="java.util.Map"  resultType="com.aiiju.pojo.Item">
+		select sum(i.money) money,i.type type from item i where i.account_id = #{accountId} and date_format(i.date,'%Y-%m-%d') = #{date} group by i.type;
+	</select>
+	<select id="getSurplusGroupByDay" parameterType="java.util.Map"  resultMap="itemMap">
+		select sum(i.money) money from item i where i.account_id = #{accountId} and date_format(i.date,'%Y-%m-%d') = #{date} and i.type=#{type};
+	</select>
+	
+	
+	
+    <select id="getItemSumGroupByMonth" parameterType="java.util.Map"  resultType="com.aiiju.pojo.Item">
+		select sum(i.money) money,i.type type from item i where i.account_id = #{accountId} and date_format(i.date,'%Y-%m') = #{date} group by i.type;
+	</select>
+    <select id="getSurplusGroupByMonth" parameterType="java.util.Map"  resultMap="itemMap">
+		select sum(i.money) money from item i where i.account_id = #{accountId} and date_format(i.date,'%Y-%m') = #{date} and i.type=#{type};
+	</select>
+	
+	
+    <select id="getItemSumGroupByQuarter" parameterType="java.util.Map"  resultType="com.aiiju.pojo.Item">
+    	select t.money money,t.type	type from ( select QUARTER(i.date) quar ,sum(money) as money,i.type as type from item i   where  i.account_id = #{accountId} and year(date)=year(curdate()) group by QUARTER(i.date),i.type ) t where t.quar=#{date};
+	</select>	
+	<select id="getSurplusGroupByQuarter" parameterType="java.util.Map" resultMap="itemMap">
+    	select t.money money,t.type	type from ( select QUARTER(i.date) quar ,sum(money) as money,i.type as type from item i  where i.type=#{type} and i.account_id = #{accountId} and year(date)=year(curdate()) group by QUARTER(i.date) ) t where t.quar=#{date};
+	</select>	
+	
+	
+    <select id="getItemSumGroupByYear" parameterType="java.util.Map"  resultType="com.aiiju.pojo.Item">
+		select sum(i.money) money,i.type type from item i where i.account_id = #{accountId} and date_format(i.date,'%Y') = #{date} group by i.type;
+	</select>	
+	<select id="getSurplusGroupByYear" parameterType="java.util.Map"  resultMap="itemMap">
+		select sum(i.money) money,i.type type from item i where i.account_id = #{accountId} and date_format(i.date,'%Y') = #{date} and i.type=#{type};
+	</select>	
+	
+		
+</mapper>

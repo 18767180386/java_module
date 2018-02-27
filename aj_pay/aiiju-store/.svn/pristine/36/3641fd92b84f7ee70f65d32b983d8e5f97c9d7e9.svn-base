@@ -1,0 +1,123 @@
+package com.aiiju.store.controller.rest;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.pojo.GoodsType;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.service.GoodsTypeService;
+/**
+ * 
+ * @ClassName: GoodsTypeController 
+ * @Description: 商品类型控制器
+ * @author 小飞 
+ * @date 2016年11月17日 上午9:59:56 
+ *
+ */
+@Controller
+@RequestMapping("/goodsType")
+public class GoodsTypeController {
+
+	private static Logger logger = Logger.getLogger(GoodsTypeController.class);
+	
+	@Autowired
+	private GoodsTypeService goodsTypeService;
+	
+	@RequestMapping("/get")
+	@ResponseBody
+	public Result get(Long id) {
+		try {
+			return this.goodsTypeService.getById(id);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	@RequestMapping("/list")
+	@ResponseBody
+	public Result gets(String storeId) {
+		try {
+			return this.goodsTypeService.getAllByStoreId(storeId);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	
+	
+	
+	@RequestMapping("/listWithGoods")
+	@ResponseBody
+	public Result gets2(String storeId) {
+		try {
+			return this.goodsTypeService.getAllWithGoodsByStoreId(storeId);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	
+	@RequestMapping("/getRelationParentGoodsList")
+	@ResponseBody
+	public Result getRelationParentGoodsList(String parentStoreId,String storeId) {
+		try {
+			return this.goodsTypeService.getRelationParentGoodsList(parentStoreId,storeId);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	@RequestMapping("/saveOrDeleteRelationGoods")
+	@ResponseBody
+	public Result saveOrDeleteRelationGoods(String storeId, String saveGoodsIds, String deleteGoodsIds) {
+		try {
+			return this.goodsTypeService.saveOrDeleteRelationGoods(storeId,saveGoodsIds,deleteGoodsIds);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	
+	
+	
+	@RequestMapping("/save")
+	@ResponseBody
+	public Result save(GoodsType goodsType) {
+		try {
+			return this.goodsTypeService.save(goodsType);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	@RequestMapping("/update")
+	@ResponseBody
+	public Result update(GoodsType goodsType) {
+		try {
+			return this.goodsTypeService.update(goodsType);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+	
+	@RequestMapping("/delete")
+	@ResponseBody
+	public Result delete(Long id) {
+		try {
+			return this.goodsTypeService.deleteById(id);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500,WebConstant.SYS_ERROR);
+		}
+	}
+}

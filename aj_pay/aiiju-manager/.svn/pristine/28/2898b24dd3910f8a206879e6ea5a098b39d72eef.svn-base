@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.UserShopMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.UserShop" useGeneratedKeys="true"  keyProperty="id">
+		insert into user_shop(user_id,shop_id,reputationShopInfo_id) 
+		values(#{userId},#{shopId},#{reputationShopInfoId})
+	</insert>
+
+	<sql id="selectSql">
+		id,user_id,shop_id,reputationShopInfo_id
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.UserShop" id="userShopMap">
+		<id column="id" property="id"/>
+		<result column="user_id" property="userId" />
+		<result column="shop_id" property="shopId" />
+		<result column="reputationShopInfo_id" property="reputationShopInfoId" />
+
+	</resultMap>
+	
+<!-- 	<resultMap type="com.aiiju.pojo.UserShop" id="ShopMap" extends="userShopMap"> -->
+<!-- 		<association property="shopList" column="user_id" select="com.aiiju.mapper.ShopMapper.getByStoreId"></association> -->
+<!-- 	</resultMap> -->
+	
+<!-- 	<resultMap type="com.aiiju.pojo.UserShop" id="ShopMap" extends="userShopMap"> -->
+<!-- 		<association property="reputationShopInfoList" column="user_id" select="com.aiiju.mapper.ShopMapper.getByStoreId"></association> -->
+<!-- 	</resultMap> -->
+	
+
+</mapper>

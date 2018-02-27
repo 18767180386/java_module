@@ -1,0 +1,182 @@
+package com.aiiju.store.controller.rest;
+
+
+
+import java.math.BigDecimal;
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.mapper.ShopAccountMapper;
+import com.aiiju.pojo.ShopAccount;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.service.ShopAccountService;
+
+/**
+ * 
+ * @ClassName: ShopAccountController
+ * @Description: 自记账 控制器
+ * @author 小飞
+ * @date 2017年3月20日 下午1:11:21
+ */
+@Controller
+@RequestMapping("/account")
+public class ShopAccountController {
+
+    private static Logger logger = Logger.getLogger(ShopAccountController.class);
+
+    @Autowired
+    private ShopAccountService shopAccountService;
+    
+    @Autowired
+    private ShopAccountMapper shopAccountMapper;
+
+    @RequestMapping("/save")
+    @ResponseBody
+    public Result save(ShopAccount shopAccount) {
+        try {
+        	
+    
+            
+          	Long start = System.currentTimeMillis();
+        	
+            Result result =  this.shopAccountService.save(shopAccount);
+             
+             Long end = System.currentTimeMillis();
+             
+             System.out.println("处理一共耗时："+(end-start)+ "ms");
+             
+             return result;
+            
+            
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+    @RequestMapping("/update")
+    @ResponseBody
+    public Result update(ShopAccount shopAccount) {
+        try {
+            return this.shopAccountService.update(shopAccount);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR + ";" + e.getMessage());
+        }
+    }
+
+    @RequestMapping("/setDefault")
+    @ResponseBody
+    public Result setDefault(ShopAccount shopAccount) {
+        try {
+            return this.shopAccountService.setDefault(shopAccount);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR + ";" + e.getMessage());
+        }
+    }
+
+    @RequestMapping("/getBudget")
+    @ResponseBody
+    public Result getShopAccount(Long id) {
+    	logger.info("获取预算金额方法  ,传入的 account_id ="+id);
+        try {
+        	
+              return this.shopAccountService.setSurplusById(id);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+    @RequestMapping("/delete")
+    @ResponseBody
+    public Result delete(Long id) {
+        try {
+            return this.shopAccountService.deleteById(id);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+    @RequestMapping("/list")
+    @ResponseBody
+    public Result list(String storeId,String operatorId, int currentNum, int pageSize) {
+        try {
+        	
+        	Long start = System.currentTimeMillis();
+        	
+           Result result =   this.shopAccountService.getAllByStoreId(storeId,operatorId, currentNum, pageSize);
+            
+            Long end = System.currentTimeMillis();
+            
+            System.out.println("处理一共耗时："+(end-start)+ "ms");
+            
+            return result;
+            
+            
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    @RequestMapping("/share")
+    @ResponseBody
+    public Result share(Long id, String operatorId) {
+        try {
+            return this.shopAccountService.saveLink(id,operatorId);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    @RequestMapping("/unShare")
+    @ResponseBody
+    public Result unshare(Long id, String operatorId) {
+        try {
+            return this.shopAccountService.deleteLink(id,operatorId);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    @RequestMapping("/accountUserList")
+    @ResponseBody
+    public Result getAccountUserList(String storeId, Long id) {
+        try {
+            return this.shopAccountService.getAccountUserList(storeId, id);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+    
+    @RequestMapping("/setBudget")
+    @ResponseBody
+    public Result setBudget(Long id,Byte budgetType,String budgetMoney) {
+    	logger.info("设置预算金额方法");
+        try {
+        	 ShopAccount account = new ShopAccount();
+             account.setId(id);
+             account.setBudgetType(budgetType);
+             account.setBudgetMoney(new BigDecimal(budgetMoney));
+             account.setModifyDate(new Date());
+             this.shopAccountMapper.updateBudget(account);
+            return this.shopAccountService.setSurplusById(id);
+         //   return this.shopAccountService.updateBudget(id,budgetType,budgetMoney);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+}

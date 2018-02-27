@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans	
+					http://www.springframework.org/schema/beans/spring-beans-4.0.xsd	
+					http://www.springframework.org/schema/context  
+                    http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+                    
+     <!-- 任务 -->
+    <bean id="mcardTask" class="com.aiiju.store.scheduler.MCardTask" />
+    
+    <!-- 任务明细-->
+	<bean id="jobDetail"  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="mcardTask" />
+		<property name="targetMethod" value="checkStatus" />
+		<!--false表示等上一个任务执行完后再开启新的任务-->
+		<property name="concurrent" value="false" />
+	</bean>
+	
+	<!-- 触发器 -->
+	<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="jobDetail" />
+		<property name="cronExpression" value="0 0 0 * * ?" />
+	</bean>
+	
+	
+	 <!-- 任务 -->
+    <bean id="printTask" class="com.aiiju.store.scheduler.PrintTask" />
+    
+    <!-- 任务明细-->
+	<bean id="printJob"  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="printTask" />
+		<property name="targetMethod" value="checkStatus" />
+		<!--false表示等上一个任务执行完后再开启新的任务-->
+		<property name="concurrent" value="false" />
+	</bean>
+	
+	<!-- 触发器 -->
+	<bean id="cronTrigger1" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="printJob" />
+		<property name="cronExpression" value="0/5 * * * * ?" />
+	</bean>
+	 
+	 
+	 <!-- 任务 -->
+    <bean id="heartBeatTask" class="com.aiiju.store.scheduler.HeartBeatTask" />
+    
+    <!-- 任务明细-->
+	<bean id="updateUserOnlineStatusJob"  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="heartBeatTask" />
+		<property name="targetMethod" value="checkOnLineStatus" />
+		<!--false表示等上一个任务执行完后再开启新的任务-->
+		<property name="concurrent" value="false" />
+	</bean>
+	<!-- 触发器 -->
+	<bean id="cronTrigger2" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="updateUserOnlineStatusJob" />
+		<property name="cronExpression" value="0/1 * * * * ?" />
+	</bean>
+	
+	 <!-- 任务 -->
+    <bean id="sendMsgTask" class="com.aiiju.store.scheduler.SendMsgTask" />
+    
+    <!-- 任务明细-->
+	<bean id="sendMsgTaskJob"  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="sendMsgTask" />
+		<property name="targetMethod" value="sendMsgOnTime" />
+		<!--false表示等上一个任务执行完后再开启新的任务-->
+		<property name="concurrent" value="true" />
+	</bean>
+	<!-- 触发器 -->
+	<bean id="cronTrigger3" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="sendMsgTaskJob" />
+		<property name="cronExpression" value="0/40 * * * * ?" />
+	</bean>
+
+	 
+	<!-- 总调度用于启动Spring定时器 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="cronTrigger" />
+<!-- 				<ref bean="cronTrigger1" /> -->
+     			<ref bean="cronTrigger3" />
+<!--  				<ref bean="cronTrigger2" />  -->
+			</list>
+		</property>
+	</bean>
+</beans>

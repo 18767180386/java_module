@@ -1,0 +1,227 @@
+package com.aiiju.store.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.mapper.SignPayMapper;
+import com.aiiju.pojo.PAContract;
+import com.aiiju.pojo.PAMerchant;
+import com.aiiju.pojo.ReputationShopInfo;
+import com.aiiju.pojo.Shop;
+import com.aiiju.pojo.SignPay;
+import com.aiiju.store.service.SignPayService;
+
+/** 
+ * @ClassName SignServiceImpl
+ * @Description
+ * @author zong
+ * @CreateDate 2017年8月8日 下午3:20:50
+ */
+@Service("signService")
+public class SignPayServiceImpl implements SignPayService {
+
+	
+	@Autowired
+	private SignPayMapper signPayMapper;
+	
+	
+	@Override
+	public Result getSignStatus(SignPay signPay) {
+		
+		if(signPay.getShopType()==null&&"".equals(signPay.getShopType())){
+			return Result.build(500, "缺少ShopType参数");
+		}
+		
+		SignPay returnSignPay	 = getSignInfo(signPay);
+	
+
+		return Result.success(returnSignPay);
+	}
+     
+	 
+	public SignPay  getSignInfo(SignPay signPay){
+		
+		SignPay returnSignPay = new SignPay();	
+	    Shop shop = signPayMapper.queryShopSignStatus(signPay);
+		
+		if(shop.getAlipay()!=(byte)1){
+			returnSignPay.setAlipayStatus("0");
+			returnSignPay.setAlipayStatusMsg("未签约");
+		}else{
+			returnSignPay.setAlipayStatus("1");
+			returnSignPay.setAlipayStatusMsg("已签约");
+		}
+        if(shop.getWx()!=(byte)1){
+        	returnSignPay.setWxStatus("0");
+        	returnSignPay.setWxStatusMsg("未签约");
+		}else{
+			returnSignPay.setWxStatus("1");
+			returnSignPay.setWxStatusMsg("已签约");
+		}
+
+		ReputationShopInfo reputationShopInfo = signPayMapper.queryReputationSignStatus(signPay);
+		if(reputationShopInfo!=null){
+			if("1".equals(reputationShopInfo.getReview_status())){
+				returnSignPay.setReputationStatus("1");
+				returnSignPay.setReputationStatusMsg("已签约");
+			}else if("0".equals(reputationShopInfo.getReview_status())){
+				returnSignPay.setReputationStatus("0");
+				returnSignPay.setReputationStatusMsg("审核未通过");
+			}else if("2".equals(reputationShopInfo.getReview_status())){
+				returnSignPay.setReputationStatus("0");
+				returnSignPay.setReputationStatusMsg("审核中");
+			}
+		}else{
+			returnSignPay.setReputationStatus("0");
+			returnSignPay.setReputationStatusMsg("未签约");
+		}
+		
+		PAMerchant pamer= new PAMerchant();
+		if("1".equals(signPay.getShopType())){
+			//直营店
+			pamer =	signPayMapper.queryPAMerchant(signPay.getParentStoreId());
+			
+		}else{
+			pamer = signPayMapper.queryPAMerchant(signPay.getStoreId());
+		}
+		
+		
+		if(pamer!=null){
+			
+			List<PAContract> list = signPayMapper.queryPAContractStatus(signPay);
+			boolean hasAlipay = false;
+			String failAlipayResoun = "";
+			boolean hasWx = false;
+			String failWxResoun = "";
+			
+			for (PAContract paContract : list) {
+				
+				if(paContract.getPmtTag().contains("Weixin")){
+					if("1".equals(paContract.getStatus())){
+						returnSignPay.setPaWxStatus("1");
+						hasWx=true;
+					}else{
+						failWxResoun=paContract.getRemark();
+					}
+				}
+				if(paContract.getPmtTag().contains("Alipay")){
+					if("1".equals(paContract.getStatus())){
+						returnSignPay.setPaAlipayStatus("1");
+						hasAlipay=true;
+					}else{
+						failAlipayResoun=paContract.getRemark();
+					}
+				}
+			}
+			if(list.size()>0){
+				
+				if(hasAlipay&&hasWx){
+					returnSignPay.setPaAlipayStatus("1");
+					returnSignPay.setPaWxStatus("1");
+					returnSignPay.setPaAllStatusMsg("已签约（包括支付宝、微信）");
+				}else{
+					
+					if(!hasAlipay&&!hasWx){
+						returnSignPay.setPaAlipayStatus("0");
+						returnSignPay.setPaWxStatus("0");
+						returnSignPay.setPaAllStatusMsg("未签约（未签约合同）");
+					}else{
+						
+						if(!hasAlipay&&hasWx){
+							returnSignPay.setPaAlipayStatus("0");
+							returnSignPay.setPaWxStatus("1");
+							returnSignPay.setPaAllStatusMsg("已签约（微信）");
+						}
+                        if(hasAlipay&&!hasWx){
+                        	returnSignPay.setPaAlipayStatus("1");
+							returnSignPay.setPaWxStatus("0");
+                        	returnSignPay.setPaAllStatusMsg("已签约（支付宝）");
+						}
+					}
+				}
+
+			}else{
+				returnSignPay.setPaAlipayStatus("0");
+				returnSignPay.setPaWxStatus("0");
+				returnSignPay.setPaAllStatusMsg("未签约合同");
+			}
+		}else{
+			returnSignPay.setPaAlipayStatus("0");
+			returnSignPay.setPaWxStatus("0");
+			returnSignPay.setPaAllStatusMsg("未签约");
+		}
+		
+		
+		if("1".equals(returnSignPay.getPaAlipayStatus())){
+			returnSignPay.setPaAlipayStatusMsg("已签约");
+		}else{
+			returnSignPay.setPaAlipayStatusMsg("未签约");
+		}
+        if("1".equals(returnSignPay.getPaWxStatus())){
+        	returnSignPay.setPaWxStatusMsg("已签约");
+		}else{
+			returnSignPay.setPaWxStatusMsg("未签约");
+		}
+		
+		return returnSignPay;
+	}
+
+	@Override
+	public Result modifyPaySwitch(SignPay signPay) {
+
+		 /**
+		  * 先查询该店铺下是否已设置过，若无，则新增，有则改之
+		  */
+		
+		SignPay signPayDB = signPayMapper.querySignPay(signPay);
+		
+		if(signPayDB!=null){
+			
+			signPayMapper.update(signPay);
+			
+		}else{
+			
+			signPayMapper.add(signPay);
+		}
+
+		return Result.success(signPay);
+	}
+
+
+	@Override
+	public Result getSwitchStatus(SignPay signPay) {
+		
+		
+		/**
+		 * 查询开关设置记录
+		 */
+		SignPay signPayDB = signPayMapper.querySignPay(signPay);
+		
+		if(signPayDB==null){
+			signPayDB= new SignPay();
+			signPayDB.setAlipaySwitch("0");
+			signPayDB.setWxSwitch("0");
+			signPayDB.setPaAlipaySwitch("0");
+			signPayDB.setPaWxSwitch("0");
+		}
+		
+		/**
+		 * 查询是否签约
+		 */
+		SignPay signInfo = getSignInfo(signPay);
+		
+		
+		signPayDB.setAlipayStatus(signInfo.getAlipayStatus());
+		signPayDB.setWxStatus(signInfo.getWxStatus());
+		signPayDB.setReputationStatus(signInfo.getReputationStatus());
+		signPayDB.setPaAlipayStatus(signInfo.getPaAlipayStatus());
+		signPayDB.setPaWxStatus(signInfo.getPaWxStatus());
+
+		return Result.success(signPayDB);
+	}
+
+
+}

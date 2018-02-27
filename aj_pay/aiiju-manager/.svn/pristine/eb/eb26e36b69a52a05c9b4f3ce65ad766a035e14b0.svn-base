@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.MemberMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Member"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		member(phone,name,gender,birthday,province,city,area,address,remark,store_id)
+		values(#{phone},#{name},#{gender},#{birthday},#{province},#{city},#{area},#{address},#{remark},#{storeId})
+	</insert>
+
+
+	<update id="update" parameterType="com.aiiju.pojo.Member">
+		update member m
+		<set>
+			<if test="name != null and name !='' ">
+				m.name = #{name},
+			</if>
+			<if test="gender != null and gender !=''">
+				m.gender = #{gender},
+			</if>
+			<if test="birthday != null and birthday !=''">
+				m.birthday = #{birthday},
+			</if>
+			<if test="province != null and province !=''">
+				m.province = #{province},
+			</if>
+			<if test="city != null and city !=''">
+				m.city = #{city},
+			</if>
+			<if test="area != null and area !=''">
+				m.area = #{area},
+			</if>
+			<if test="address != null and address !=''">
+				m.address = #{address},
+			</if>
+			<if test="remark != null and remark !=''">
+				m.remark = #{remark},
+			</if>
+		</set>
+		where m.id = #{id}
+	</update>
+
+	<resultMap type="com.aiiju.pojo.Member" id="memberMap">
+		<id column="id" property="id" />
+		<result column="phone" property="phone" />
+		<result column="name" property="name" />
+		<result column="gender" property="gender" />
+		<result column="birthday" property="birthday" />
+		<result column="province" property="province" />
+		<result column="city" property="city" />
+		<result column="area" property="area" />
+		<result column="address" property="address" />
+		<result column="remark" property="remark" />
+		<result column="store_id" property="storeId" />
+		
+	</resultMap>
+
+	<select id="getAllByStoreId" parameterType="java.lang.String"
+		resultMap="memberMap">
+		select id,phone,name from member where store_id = #{storeId}
+	</select>
+
+	<select id="getByMCardId" parameterType="java.lang.Long"
+		resultMap="memberMap">
+		select
+		m.id,m.phone,m.name
+		from member_m_card mmc inner join member m on mmc.member_id = m.id
+		where mmc.m_card_id = #{mCardId}
+	</select>
+
+	<resultMap type="com.aiiju.pojo.Member" id="MMCMap" extends="memberMap">
+		<collection property="cardList" column="id"
+			select="com.aiiju.mapper.MCardMapper.getByMemberId"></collection>
+		<!-- <collection property="couponList" column="id"
+			select="com.aiiju.mapper.CouponMapper.getByMemberId"></collection> -->
+	</resultMap>
+
+	<select id="getById" parameterType="java.lang.Long" resultMap="MMCMap">
+		select
+		id,phone,name,gender,birthday,province,city,area,address,remark,store_id
+		from member where id = #{id}
+	</select>
+
+	<select id="getByPhone" parameterType="java.lang.String"
+		resultMap="MMCMap">
+		select id,phone,name,gender,birthday,province,city,area,address,remark
+		from member where store_id = #{storeId} and phone like  concat(concat('%',#{phone}),'%') 
+	</select>
+	
+	<select id="getBykeyword" parameterType="java.lang.String"
+		resultType="com.aiiju.pojo.Member">
+		select id,phone,name
+		from member where store_id = #{storeId} and ( name like concat(concat('%',#{name}),'%') or phone like concat(concat('%',#{name}),'%') )
+	</select>
+	
+	<select id="getByName" parameterType="java.lang.String"
+		resultMap="MMCMap">
+		select id,phone,name,gender,birthday,province,city,area,address,remark
+		from member where store_id = #{storeId} and name like concat(concat('%',#{name}),'%') 
+	</select>
+
+	<!-- 关联 优惠券 -->
+	<insert id="addMCLink" parameterType="com.aiiju.pojo.MemberCouponLink">
+		insert into
+		coupon_member(coupon_id,member_id) values(#{couponId}，#{memberId})
+	</insert>
+
+	<delete id="deleteMCLink" parameterType="com.aiiju.pojo.MemberCouponLink">
+		delete from
+		coupon_member where member_id = #{memberId} and coupon_id =
+		#{couponId}
+	</delete>
+
+	<!-- 关联 会员卡 -->
+	<insert id="addMMLink" parameterType="com.aiiju.pojo.MemberMCardLink">
+		insert into
+		member_m_card(member_id,m_card_id,code)
+		values(#{memberId},#{mCardId},#{code})
+	</insert>
+
+	<delete id="deleteMMLink" parameterType="com.aiiju.pojo.MemberMCardLink">
+		delete from
+		member_m_card where member_id = #{memberId} and m_card_id = #{mCardId}
+	</delete>
+
+	<!-- 查询会员数 -->
+	<select id="getNum" parameterType="java.lang.Long" resultType="java.lang.Integer">
+		select count(1) num from member_m_card where m_card_id = #{mCardId}
+	</select>
+
+</mapper>

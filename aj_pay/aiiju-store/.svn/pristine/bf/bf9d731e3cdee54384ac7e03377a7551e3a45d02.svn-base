@@ -1,0 +1,136 @@
+package com.aiiju.store.interceptor;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Enumeration;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.JsonUtils;
+import com.aiiju.store.service.UserService;
+
+/**
+ * 
+ * @ClassName: LoginInterceptor
+ * @Description: 登录拦截器
+ * @author 小飞
+ * @date 2016年11月16日 下午11:36:11
+ *
+ */
+public class LoginInterceptor implements HandlerInterceptor {
+
+	private static Logger logger = Logger.getLogger(LoginInterceptor.class);
+
+	private static String[] filterUrls = { "/sso", "/erp", "/note", "/shop", "/user/inviteUI", "/user/inviteUser",
+			"/user/checkInviteByNote", "/user/inviteResult", "member", "/image", "/css", "/js", "/aboutus",
+			"/product/downloadAndroid", "/reputation", "/paCallback", "/user/heartBeat", "/priceTag/createPriceTag","bookingManage/getBookingManageById"};
+
+	@Autowired
+	private UserService userService;
+
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+			throws Exception {
+
+		String uri = request.getRequestURI();
+
+		boolean falg = false;
+		if (!uri.contains("heartBeat")) {
+			falg = true;
+			logger.info("LoginInterceptor:" + uri);
+		}
+
+		String contentType = request.getContentType();
+		Enumeration paramNames = request.getParameterNames();
+		while (paramNames.hasMoreElements()) {
+			String paramName = (String) paramNames.nextElement();
+			String paramValue = null;
+			if ("uploadFile".equals(paramName)) {
+				paramValue = "文件内容略";
+			} else {
+				paramValue = request.getParameter(paramName);
+			}
+			String value = paramName + ":" + paramValue;
+
+			if (falg) {
+				System.out.println(value.trim());
+			}
+
+		}
+
+		for (String url : filterUrls) {
+			if (request.getRequestURI().contains(url)) {// 获取验证码、登录注册相关、创建店铺，邀请店员，联系我们页面
+														// 放行
+				return true;
+			}
+		}
+
+		String token = request.getParameter("token");
+		if (StringUtils.isBlank(token)) {
+
+			if (contentType != null && contentType.contains("multipart/form-data")) {
+				response.getWriter().write(JsonUtils.objectToJson(Result.build(400, "token值为空")));
+			} else {
+				this.getWriter(response).write(JsonUtils.objectToJson(Result.build(400, "token值为空")));
+			}
+
+			return false;
+		}
+		// 判断token是否有效
+		Result rt = this.userService.checkToken(token);
+		if (rt.getStatus() == 600) {
+			logger.info("token:" + token + "过期");
+
+			if (contentType.contains("multipart/form-data")) {
+				response.getWriter().write(JsonUtils.objectToJson(rt));
+			} else {
+				this.getWriter(response).write(JsonUtils.objectToJson(rt));
+			}
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	public void afterCompletion(HttpServletRequest arg0, HttpServletResponse arg1, Object arg2, Exception arg3)
+			throws Exception {
+
+	}
+
+	@Override
+	public void postHandle(HttpServletRequest arg0, HttpServletResponse arg1, Object arg2, ModelAndView arg3)
+			throws Exception {
+
+	}
+
+	private PrintWriter getWriter(HttpServletResponse resp) {
+
+		resp.setContentType("text/html;charset=UTF-8");
+		try {
+			return resp.getWriter();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private PrintWriter getWriterFile(HttpServletResponse resp) {
+
+		try {
+			return resp.getWriter();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

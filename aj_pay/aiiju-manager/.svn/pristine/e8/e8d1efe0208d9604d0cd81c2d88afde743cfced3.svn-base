@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.ReputationShopInfoMapper">
+
+	<select id="getShopInfoByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationShopInfo">
+		select * from reputation_shopinfo where store_id = #{storeId}
+	</select>
+
+	<insert id="add" parameterType="com.aiiju.pojo.ReputationShopInfo" useGeneratedKeys="true"  keyProperty="id">
+		insert into reputation_shopinfo
+		(parent_store_id,shop_type,store_id,category_id,brand_name,brand_logo,main_shop_name,branch_shop_name,province_code,city_code,district_code,address,longitude
+		,latitude,contact_number,notify_mobile,main_image,audit_images,business_time,wifi,parking,value_added,avg_price,isv_uid,licence,
+		licence_code,licence_name,business_certificate,auth_letter,is_operating_online,online_url,operate_notify_url,implement_id,
+		no_smoking,box,request_id,other_authorization,licence_expires,op_role,biz_version,create_date,modify_date,review_status,business_certificate_expires,code_name,category_name)
+		values(#{parent_store_id},#{shop_type},#{store_id},#{category_id},#{brand_name},#{brand_logo},#{main_shop_name},#{branch_shop_name},#{province_code},#{city_code},#{district_code},#{address},#{longitude}
+		,#{latitude},#{contact_number},#{notify_mobile},#{main_image},#{audit_images},#{business_time},#{wifi},#{parking},#{value_added},#{avg_price},#{isv_uid},#{licence},#{licence_code},#{licence_name}
+		,#{business_certificate},#{auth_letter},#{is_operating_online},#{online_url},#{operate_notify_url},#{implement_id},#{no_smoking},#{box},#{request_id},#{other_authorization},#{licence_expires},#{op_role},#{biz_version},#{create_date},#{create_date},2,#{business_certificate_expires},#{code_name},#{category_name})
+	</insert>
+
+	<update id="update" parameterType="com.aiiju.pojo.ReputationShopInfo">
+		update reputation_shopinfo
+		<set>
+			<if test="category_id != null and category_id !=''">
+				category_id = #{category_id},
+			</if>
+			<if test="brand_name != null and brand_name !=''">
+				brand_name = #{brand_name},
+			</if>
+			<if test="brand_logo != null and brand_logo !=''">
+				brand_logo = #{brand_logo},
+			</if>
+			<if test="main_shop_name != null and main_shop_name !=''">
+				main_shop_name = #{main_shop_name},
+			</if>
+			<if test="branch_shop_name != null and branch_shop_name !=''">
+				branch_shop_name = #{branch_shop_name},
+			</if>
+			<if test="province_code != null and province_code !=''">
+				province_code = #{province_code},
+			</if>
+		    <if test="city_code != null and city_code !=''">
+				city_code = #{city_code},
+			</if>
+			<if test="district_code != null and district_code !=''">
+				district_code = #{district_code},
+			</if>
+			<if test="address != null and address !=''">
+				address = #{address},
+			</if>
+			<if test="longitude != null and longitude !=''">
+				longitude = #{longitude},
+			</if>
+			<if test="latitude != null and latitude !=''">
+				latitude = #{latitude},
+			</if>
+			<if test="contact_number != null and contact_number !=''">
+				contact_number = #{contact_number},
+			</if>
+			<if test="notify_mobile != null and notify_mobile !=''">
+				notify_mobile = #{notify_mobile},
+			</if>
+			<if test="main_image != null and main_image !=''">
+				main_image = #{main_image},
+			</if>
+			<if test="audit_images != null and audit_images !=''">
+				audit_images = #{audit_images},
+			</if>
+			<if test="business_time != null and business_time !=''">
+				business_time = #{business_time},
+			</if>
+			<if test="wifi != null and wifi !=''">
+				wifi = #{wifi},
+			</if>
+			<if test="parking != null and parking !=''">
+				parking = #{parking},
+			</if>
+			<if test="value_added != null and value_added !=''">
+				value_added = #{value_added},
+			</if>
+			<if test="avg_price != null and avg_price !=''">
+				avg_price = #{avg_price},
+			</if>
+			<if test="isv_uid != null and isv_uid !=''">
+				isv_uid = #{isv_uid},
+			</if>
+			<if test="licence != null and licence !=''">
+				licence = #{licence},
+			</if>
+				<if test="licence_code != null and licence_code !=''">
+				licence_code = #{licence_code},
+			</if>
+				<if test="licence_name != null and licence_name !=''">
+				licence_name = #{licence_name},
+			</if>
+				<if test="business_certificate != null and business_certificate !=''">
+				business_certificate = #{business_certificate},
+			</if>
+				<if test="auth_letter != null and auth_letter !=''">
+				auth_letter = #{auth_letter},
+			</if>
+				<if test="is_operating_online != null and is_operating_online !=''">
+				is_operating_online = #{is_operating_online},
+			</if>
+				<if test="online_url != null and online_url !=''">
+				online_url = #{online_url},
+			</if>
+				<if test="operate_notify_url != null and operate_notify_url !=''">
+				operate_notify_url = #{operate_notify_url},
+			</if>
+				<if test="implement_id != null and implement_id !=''">
+				implement_id = #{implement_id},
+			</if>
+				<if test="no_smoking != null and no_smoking !=''">
+				no_smoking = #{no_smoking},
+			</if>
+				<if test="box != null and box !=''">
+				box = #{box},
+			</if>
+				<if test="request_id != null and request_id !=''">
+				request_id = #{request_id},
+			</if>
+				<if test="other_authorization != null and other_authorization !=''">
+				other_authorization = #{other_authorization},
+			</if>
+				<if test="licence_expires != null and licence_expires !=''">
+				licence_expires = #{licence_expires},
+			</if>
+				<if test="op_role != null and op_role !=''">
+				op_role = #{op_role},
+			</if>
+			 <if test="biz_version != null and biz_version !=''">
+				biz_version = #{biz_version},
+			</if>
+		
+			 <if test="modify_date != null and modify_date !=''">
+				modify_date = #{modify_date},
+			</if>
+			<if test="business_certificate_expires != null and business_certificate_expires !=''">
+				business_certificate_expires = #{business_certificate_expires},
+			</if>
+			<if test="category_name != null and category_name !=''">
+				category_name = #{category_name},
+			</if>
+				<if test="code_name != null and code_name !=''">
+				code_name = #{code_name},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+
+
+
+	<update id="updateCreateShopResultMessage" parameterType="com.aiiju.pojo.ReputationShopInfo">
+		update reputation_shopinfo
+		<set>
+			<if test="code != null and code !=''">
+				code = #{code},
+			</if>
+			<if test="msg != null and msg !=''">
+				msg = #{msg},
+			</if>
+			<if test="sub_code != null and sub_code !=''">
+				sub_code = #{sub_code},
+			</if>
+			<if test="sub_msg != null and sub_msg !=''">
+				sub_msg = #{sub_msg},
+			</if>
+			<if test="audit_status != null and audit_status !=''">
+				audit_status = #{audit_status},
+			</if>
+			<if test="result_code != null and result_code !=''">
+				result_code = #{result_code},
+			</if>
+		   <if test="apply_id != null and apply_id !=''">
+				apply_id = #{apply_id},
+			</if>
+			<if test="modify_date != null and modify_date !=''">
+				modify_date = #{modify_date},
+			</if>
+			 <if test="review_status != null and review_status !=''">
+				review_status = #{review_status},
+			</if>
+			 <if test="notify_time != null and notify_time !=''">
+				modify_date = #{notify_time},
+			</if>
+		
+			<if test="result_desc != null and result_desc !=''">
+				result_desc = #{result_desc},
+			</if>
+			
+		</set>
+		where id = #{id}
+	</update>
+
+
+
+
+</mapper>

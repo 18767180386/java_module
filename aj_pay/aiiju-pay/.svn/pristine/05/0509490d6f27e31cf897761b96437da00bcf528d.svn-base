@@ -1,0 +1,164 @@
+package com.aiiju.pay.aop;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.aspectj.lang.JoinPoint;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.HttpClientUtil;
+import com.aiiju.common.util.signTool;
+import com.aiiju.pay.service.DealService;
+import com.aiiju.pay.service.ShopService;
+import com.aiiju.pojo.Deal;
+
+/**
+ * @Description: 这是aop 切面执行的程序。
+ * 当订单发生增加修改的时候，如果和ERP系统进行了绑定。需要通知ERP系统
+ * @Author:	天明
+ * @CreateDate:	2017年7月27日下午2:52:22
+ */
+public class AjsyNotify {
+	
+	// 地址写到 properties 文件中
+	@Value("${ERP_AJSYNOTIFY_URL}")
+    private String erp_url;
+	
+	@Autowired
+	private ShopService shopService;
+	
+	@Autowired
+	private DealService dealService;
+	
+	private static Logger logger = Logger.getLogger(AjsyNotify.class);
+	
+	/**
+	 * 当订单的信息发生修改的时候 通知ERP系统 
+	 * 和 updateDeal 两个方法的后面的处理函数） 包含定的添加和修改
+	 * 
+	 * @param point
+	 */
+	public void dealERP(JoinPoint point, Result result) {
+
+		// 只有 结果是成功的时候才 通知ERP系统  
+		if (result == null || result.getStatus() != 200) {
+			return;
+		}
+		
+		// 获取更新和 修改的参数
+		Object[] args = point.getArgs();
+		Deal deal = (Deal) args[0];
+
+		// 进行判断
+		String storeId = deal.getStoreId();
+
+		// 判断storeid 是否已经关联了ERP系统，如果没有结束程序
+		if (storeId == null || !shopService.relativeERP(storeId)) {
+			return;
+		}
+		// 进行判断订单的类型
+		this.sendAjsyNotify(storeId, "order");
+
+		logger.info("需要通知ERP系统：信息的更新");
+
+	}
+	
+	/**
+	 * 当订单的信息发生修改的时候 通知ERP系统 
+	 * 和 updateDeal 两个方法的后面的处理函数） 包含定的添加和修改
+	 * 
+	 * @param point
+	 */
+	public void updateDealERP(JoinPoint point, boolean result) {
+
+		if(result == false){
+			return ;
+		}
+		// 获取更新和 修改的参数
+		Object[] args = point.getArgs();
+		Deal deal = (Deal) args[0];
+
+		// 进行判断
+		String storeId = deal.getStoreId();
+
+		// 判断storeid 是否已经关联了ERP系统，如果没有结束程序
+		if (storeId == null || !shopService.relativeERP(storeId)) {
+			return;
+		}
+		// 进行判断订单的类型
+		this.sendAjsyNotify(storeId, "order");
+
+		logger.info("需要通知ERP系统：信息的更新");
+
+	}
+
+	/**
+	 * 当订单的信息发生修改的时候 通知ERP系统 
+	 * 和 updateDeal 两个方法的后面的处理函数） 包含定的添加和修改
+	 * 
+	 * @param point
+	 */
+	public void dealRefundERP(JoinPoint point, Result result) {
+		// 只有 结果是成功的时候才 通知ERP系统
+		if (result == null || result.getStatus() != 200) {
+			return;
+		}
+		// 获取更新和 修改的参数
+		Object[] args = point.getArgs();
+		Deal deal = (Deal) args[0];
+
+		// 进行判断
+		String storeId = deal.getStoreId();
+
+		// 判断storeid 是否已经关联了ERP系统，如果没有结束程序
+		if (storeId == null || !shopService.relativeERP(storeId)) {
+			return;
+		}
+		// 进行判断订单的类型
+		this.sendAjsyNotify(storeId, "refund");
+
+		logger.info("需要通知ERP系统：产生一个退款的订单");
+	}
+
+	public void dealRefundUpdateERP(JoinPoint point) {
+
+		// 获取更新和 修改的参数
+		Object[] args = point.getArgs();
+		String serialNum = (String) args[0]; // 获取订单的额流水号
+
+		Deal deal = dealService.getDealBySerialNum(serialNum);
+		// 进行判断
+		String storeId = deal.getStoreId();
+
+		// 判断storeid 是否已经关联了ERP系统，如果没有结束程序
+		if (storeId == null || !shopService.relativeERP(storeId)) {
+			return;
+		}
+		// 进行判断订单的类型
+		this.sendAjsyNotify(storeId, "refund");
+
+		logger.info("需要通知ERP系统：产生一个退款的订单");
+	}
+	
+	/**
+	 * 向ERP系统中发送消息，这边有商品 
+	 * @param storeId 商品 或者订单等 店铺的id
+	 * @param whichSync 他的值只有三个 item 同步商品，order订单，refund退款
+	 */
+	public void sendAjsyNotify(String storeId,String whichSync) {
+		
+		Map<String, String> notifyIDMap = new HashMap<>();
+		notifyIDMap.put("storeId", storeId);
+		notifyIDMap.put("whichSync", whichSync);
+		
+		String signResult = signTool.sign(notifyIDMap);
+		notifyIDMap.put("sign", signResult);
+		// 验证notify_id
+		String doPostStr = HttpClientUtil.doPost(erp_url, notifyIDMap);
+		System.out.println(doPostStr);
+	}
+
+}

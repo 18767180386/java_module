@@ -1,0 +1,20 @@
+package com.aiiju.mapper;
+
+import com.aiiju.pojo.BusinessSwitch;
+
+public interface BusinessSwitchMapper {
+	
+    int deleteByPrimaryKey(Integer id);
+
+    
+
+    int insertSelective(BusinessSwitch record);
+
+    BusinessSwitch selectBySwtichName(String swtichName);
+    
+    BusinessSwitch selectByPrimaryKey(Integer id);
+
+    int updateByPrimaryKeySelective(BusinessSwitch record);
+
+
+}

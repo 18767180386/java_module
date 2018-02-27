@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.ReputationCategoryMapper">
+
+	<select id="getFirstLevel" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationCategory">
+		select * from reputation_category group by first_level order by id
+	</select>
+	
+	<select id="getSecondLevel" parameterType="java.lang.String" resultType="com.aiiju.pojo.ReputationCategory">
+
+		select * from reputation_category where  first_level=#{first_level} group by second_level order by id;  
+	</select>
+	
+	
+	<select id="getThirdLevel" parameterType="com.aiiju.pojo.ReputationCategory" resultType="com.aiiju.pojo.ReputationCategory">	
+		select * from reputation_category where  first_level= #{first_level} and  second_level=#{second_level} and third_level!='——' group by third_level order by id; 
+		
+	</select>
+
+</mapper>

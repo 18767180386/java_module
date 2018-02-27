@@ -1,0 +1,82 @@
+package com.aiiju.store.controller.rest;
+
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.service.DealService;
+
+/**
+ * 
+ * @ClassName: DealController
+ * @Description: 交易流水控制器
+ * @author 小飞
+ * @date 2016年12月5日 下午7:02:26
+ *
+ */
+@Controller
+@RequestMapping("/deal")
+public class DealController {
+
+    private static Logger logger = Logger.getLogger(DealController.class);
+
+    @Autowired
+    private DealService dealService;
+
+    @RequestMapping("/list")
+    @ResponseBody
+    public Result list(String storeId, String operatorId,String serialNum, @RequestParam(value = "currentNum", defaultValue = "1") Integer currentNum,
+            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        try {
+        	
+            return this.dealService.getAllByStoreId(storeId, operatorId, currentNum, pageSize,serialNum);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+    
+    @RequestMapping("/queryDealStatistics")
+    @ResponseBody
+    public Result queryDealStatistics(String storeId, String role,String queryStoreId, String operatorId,String date,String payType,String tradeType, @RequestParam(value = "currentNum", defaultValue = "1") Integer currentNum,
+            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize,String printSerial) {
+        try {
+        	
+            return this.dealService.queryDealStatistics(storeId,role,queryStoreId, operatorId, date,payType,tradeType,currentNum, pageSize,printSerial);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+    @RequestMapping("/get")
+    @ResponseBody
+    public Result get(Long id) {
+        try {
+            return this.dealService.getById(id);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+    @RequestMapping("/getBySerialNum")
+    @ResponseBody
+    public Result get(String serialNum) {
+        try {
+            return this.dealService.getDetailBySerialNum(serialNum);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return Result.build(500, WebConstant.SYS_ERROR);
+        }
+    }
+
+}

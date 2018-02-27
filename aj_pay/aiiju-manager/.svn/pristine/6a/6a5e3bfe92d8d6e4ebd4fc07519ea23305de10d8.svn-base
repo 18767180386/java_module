@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.PAMerchantMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.PAMerchant" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="parent_store_id" property="parentStoreId" jdbcType="VARCHAR" />
+    <result column="store_id" property="storeId" jdbcType="VARCHAR" />
+    <result column="mct_no" property="mctNo" jdbcType="VARCHAR" />
+    <result column="tra_id" property="traId" jdbcType="VARCHAR" />
+    <result column="mct_name" property="mctName" jdbcType="VARCHAR" />
+    <result column="brand_name" property="brandName" jdbcType="VARCHAR" />
+    <result column="cityid" property="cityid" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="open_hours" property="openHours" jdbcType="VARCHAR" />
+    <result column="clsid" property="clsid" jdbcType="VARCHAR" />
+     <result column="clsid_name" property="clsidName" jdbcType="VARCHAR" />
+    
+    <result column="boss_name" property="bossName" jdbcType="VARCHAR" />
+    <result column="boss_sex" property="bossSex" jdbcType="VARCHAR" />
+    <result column="boss_id_country" property="bossIdCountry" jdbcType="VARCHAR" />
+    <result column="boss_id_type" property="bossIdType" jdbcType="VARCHAR" />
+    <result column="boss_sdate" property="bossSdate" jdbcType="TIMESTAMP" />
+    <result column="boss_edate" property="bossEdate" jdbcType="TIMESTAMP" />
+    <result column="boss_id_no" property="bossIdNo" jdbcType="VARCHAR" />
+    <result column="boss_tel" property="bossTel" jdbcType="VARCHAR" />
+    <result column="boss_email" property="bossEmail" jdbcType="VARCHAR" />
+    <result column="boss_job" property="bossJob" jdbcType="VARCHAR" />
+    <result column="boss_address" property="bossAddress" jdbcType="VARCHAR" />
+    <result column="boss_positive" property="bossPositive" jdbcType="VARCHAR" />
+    <result column="boss_back" property="bossBack" jdbcType="VARCHAR" />
+    <result column="bl_type" property="blType" jdbcType="VARCHAR" />
+    <result column="bl_sdate" property="blSdate" jdbcType="TIMESTAMP" />
+    <result column="bl_edate" property="blEdate" jdbcType="TIMESTAMP" />
+    <result column="bl_no" property="blNo" jdbcType="VARCHAR" />
+    <result column="bl_pic" property="blPic" jdbcType="VARCHAR" />
+    <result column="bank_name" property="bankName" jdbcType="VARCHAR" />
+    <result column="account_name" property="accountName" jdbcType="VARCHAR" />
+    <result column="account_no" property="accountNo" jdbcType="VARCHAR" />
+    <result column="account_type" property="accountType" jdbcType="VARCHAR" />
+    <result column="bank_no" property="bankNo" jdbcType="VARCHAR" />
+    <result column="account_boss" property="accountBoss" jdbcType="VARCHAR" />
+    <result column="account_id_type" property="accountIdType" jdbcType="VARCHAR" />
+    <result column="account_id_no" property="accountIdNo" jdbcType="VARCHAR" />
+    <result column="intro" property="intro" jdbcType="VARCHAR" />
+    <result column="adm_name" property="admName" jdbcType="VARCHAR" />
+    <result column="occ_no" property="occNo" jdbcType="VARCHAR" />
+    <result column="occ_sdate" property="occSdate" jdbcType="TIMESTAMP" />
+    <result column="occ_edate" property="occEdate" jdbcType="TIMESTAMP" />
+    <result column="occ_pic" property="occPic" jdbcType="VARCHAR" />
+    <result column="trc_no" property="trcNo" jdbcType="VARCHAR" />
+    <result column="trc_sdate" property="trcSdate" jdbcType="TIMESTAMP" />
+    <result column="trc_edate" property="trcEdate" jdbcType="TIMESTAMP" />
+    <result column="trc_pic" property="trcPic" jdbcType="VARCHAR" />
+    <result column="tag" property="tag" jdbcType="VARCHAR" />
+    <result column="financial_contact" property="financialContact" jdbcType="VARCHAR" />
+    <result column="financial_tel" property="financialTel" jdbcType="VARCHAR" />
+    <result column="logo" property="logo" jdbcType="VARCHAR" />
+    <result column="licence_pic" property="licencePic" jdbcType="VARCHAR" />
+    <result column="licence_pic2" property="licencePic2" jdbcType="VARCHAR" />
+    <result column="other_pic1" property="otherPic1" jdbcType="VARCHAR" />
+    <result column="other_pic2" property="otherPic2" jdbcType="VARCHAR" />
+    <result column="other_pic3" property="otherPic3" jdbcType="VARCHAR" />
+    <result column="other_pic4" property="otherPic4" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="modify_date" property="modifyDate" jdbcType="TIMESTAMP" />
+    <result column="errcode" property="errcode" jdbcType="VARCHAR" />
+    <result column="errcode_msg" property="errcodeMsg" jdbcType="VARCHAR" />
+    <result column="step" property="step" jdbcType="VARCHAR" />
+    <result column="step_status" property="stepStatus" jdbcType="VARCHAR" />
+
+  </resultMap>
+  <sql id="Base_Column_List" >
+    pa_merchant.id,pa_merchant.parent_store_id,pa_merchant.store_id,pa_merchant.mct_no,pa_merchant.tra_id,pa_merchant.mct_name,pa_merchant.brand_name,pa_merchant.cityid,pa_merchant.address,
+    pa_merchant.tel,pa_merchant.open_hours,pa_merchant.clsid,pa_merchant.clsid_name,pa_merchant.boss_name,pa_merchant.boss_sex,pa_merchant.boss_id_country,pa_merchant.boss_id_type,pa_merchant.boss_sdate,
+    pa_merchant.boss_edate,pa_merchant.boss_id_no,pa_merchant.boss_tel,pa_merchant.boss_email,pa_merchant.boss_job,pa_merchant.boss_address,pa_merchant.boss_positive,
+    pa_merchant.boss_back,pa_merchant.bl_type,pa_merchant.bl_sdate,pa_merchant.bl_edate,pa_merchant.bl_no,pa_merchant.bl_pic,pa_merchant.bank_name,pa_merchant.account_name,pa_merchant.account_no,
+    pa_merchant.account_type,pa_merchant.bank_no,pa_merchant.account_boss,pa_merchant.account_id_type,pa_merchant.account_id_no,pa_merchant.intro,pa_merchant.adm_name,
+    pa_merchant.occ_no,pa_merchant.occ_sdate,pa_merchant.occ_edate,pa_merchant.occ_pic,pa_merchant.trc_no,pa_merchant.trc_sdate,pa_merchant.trc_edate,pa_merchant.trc_pic,pa_merchant.tag,
+    pa_merchant.financial_contact,pa_merchant.financial_tel,pa_merchant.logo,pa_merchant.licence_pic,pa_merchant.licence_pic2,pa_merchant.other_pic1,pa_merchant.other_pic2,
+    pa_merchant.other_pic3,pa_merchant.other_pic4,pa_merchant.create_date,pa_merchant.modify_date,pa_merchant.errcode,pa_merchant.errcode_msg,pa_merchant.step,pa_merchant.step_status
+  </sql>
+  
+   <select id="getMerchantList" resultType="com.aiiju.pojo.PAMerchant" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_merchant
+  
+  </select>
+  
+  
+  
+  
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_merchant
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+   <select id="get" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />  ,
+    pa_mer_shop.lng,pa_mer_shop.lat,pa_mer_shop.pic1,pa_mer_shop.pic2,pa_mer_shop.pic3   
+    from pa_merchant ,pa_mer_shop  
+    where pa_merchant.id =pa_mer_shop.mer_id  and pa_merchant.store_id =#{storeId,jdbcType=INTEGER} order by pa_merchant.create_date desc limit 1
+ 
+  </select>
+  
+  
+    <select id="findPAMerchantByParStoreId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_merchant
+    where store_id = #{storeId} and parent_store_id = store_id
+  </select>
+      <select id="findPAMerchantByStoreId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_merchant
+    where store_id = #{storeId}
+  </select>
+  
+   <select id="getByMctNo" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_merchant
+    where mct_no = #{mctNo}
+  </select>
+  
+  
+  
+  <delete id="deleteMerchantByIdFromDB" parameterType="java.lang.Integer" >
+    delete from pa_merchant
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="add" parameterType="com.aiiju.pojo.PAMerchant" useGeneratedKeys="true"  keyProperty="id" >
+    insert into pa_merchant
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="parentStoreId != null">
+        parent_store_id,
+      </if>
+      <if test="storeId != null">
+        store_id,
+      </if>
+      <if test="mctNo != null">
+        mct_no,
+      </if>
+      <if test="traId != null">
+        tra_id,
+      </if>
+      <if test="mctName != null">
+        mct_name,
+      </if>
+      <if test="brandName != null">
+        brand_name,
+      </if>
+      <if test="cityid != null">
+        cityid,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="tel != null">
+        tel,
+      </if>
+      <if test="openHours != null">
+        open_hours,
+      </if>
+      <if test="clsid != null">
+        clsid,
+      </if>
+      <if test="clsidName != null">
+        clsid_name,
+      </if>
+      <if test="bossName != null">
+        boss_name,
+      </if>
+      <if test="bossSex != null">
+        boss_sex,
+      </if>
+      <if test="bossIdCountry != null">
+        boss_id_country,
+      </if>
+      <if test="bossIdType != null">
+        boss_id_type,
+      </if>
+      <if test="bossSdate != null">
+        boss_sdate,
+      </if>
+      <if test="bossEdate != null">
+        boss_edate,
+      </if>
+      <if test="bossIdNo != null">
+        boss_id_no,
+      </if>
+      <if test="bossTel != null">
+        boss_tel,
+      </if>
+      <if test="bossEmail != null">
+        boss_email,
+      </if>
+      <if test="bossJob != null">
+        boss_job,
+      </if>
+      <if test="bossAddress != null">
+        boss_address,
+      </if>
+      <if test="bossPositive != null">
+        boss_positive,
+      </if>
+      <if test="bossBack != null">
+        boss_back,
+      </if>
+      <if test="blType != null">
+        bl_type,
+      </if>
+      <if test="blSdate != null">
+        bl_sdate,
+      </if>
+      <if test="blEdate != null">
+        bl_edate,
+      </if>
+      <if test="blNo != null">
+        bl_no,
+      </if>
+      <if test="blPic != null">
+        bl_pic,
+      </if>
+      <if test="bankName != null">
+        bank_name,
+      </if>
+      <if test="accountName != null">
+        account_name,
+      </if>
+      <if test="accountNo != null">
+        account_no,
+      </if>
+      <if test="accountType != null">
+        account_type,
+      </if>
+      <if test="bankNo != null">
+        bank_no,
+      </if>
+      <if test="accountBoss != null">
+        account_boss,
+      </if>
+      <if test="accountIdType != null">
+        account_id_type,
+      </if>
+      <if test="accountIdNo != null">
+        account_id_no,
+      </if>
+      <if test="intro != null">
+        intro,
+      </if>
+      <if test="admName != null">
+        adm_name,
+      </if>
+      <if test="occNo != null">
+        occ_no,
+      </if>
+      <if test="occSdate != null">
+        occ_sdate,
+      </if>
+      <if test="occEdate != null">
+        occ_edate,
+      </if>
+      <if test="occPic != null">
+        occ_pic,
+      </if>
+      <if test="trcNo != null">
+        trc_no,
+      </if>
+      <if test="trcSdate != null">
+        trc_sdate,
+      </if>
+      <if test="trcEdate != null">
+        trc_edate,
+      </if>
+      <if test="trcPic != null">
+        trc_pic,
+      </if>
+      <if test="tag != null">
+        tag,
+      </if>
+      <if test="financialContact != null">
+        financial_contact,
+      </if>
+      <if test="financialTel != null">
+        financial_tel,
+      </if>
+      <if test="logo != null">
+        logo,
+      </if>
+      <if test="licencePic != null">
+        licence_pic,
+      </if>
+      <if test="licencePic2 != null">
+        licence_pic2,
+      </if>
+      <if test="otherPic1 != null">
+        other_pic1,
+      </if>
+      <if test="otherPic2 != null">
+        other_pic2,
+      </if>
+      <if test="otherPic3 != null">
+        other_pic3,
+      </if>
+      <if test="otherPic4 != null">
+        other_pic4,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="modifyDate != null">
+        modify_date,
+      </if>
+      <if test="errcode != null">
+        errcode,
+      </if>
+      <if test="errcodeMsg != null">
+        errcode_msg,
+      </if>
+      <if test="step != null">
+        step,
+      </if>
+      <if test="stepStatus != null">
+        step_status,
+      </if>
+     
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="parentStoreId != null">
+        #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="storeId != null">
+        #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="mctNo != null">
+        #{mctNo,jdbcType=VARCHAR},
+      </if>
+      <if test="traId != null">
+        #{traId,jdbcType=VARCHAR},
+      </if>
+      <if test="mctName != null">
+        #{mctName,jdbcType=VARCHAR},
+      </if>
+      <if test="brandName != null">
+        #{brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="cityid != null">
+        #{cityid,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null">
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="openHours != null">
+        #{openHours,jdbcType=VARCHAR},
+      </if>
+      <if test="clsid != null">
+        #{clsid,jdbcType=VARCHAR},
+      </if>
+      <if test="clsidName != null">
+        #{clsidName,jdbcType=VARCHAR},
+      </if>
+      <if test="bossName != null">
+        #{bossName,jdbcType=VARCHAR},
+      </if>
+      <if test="bossSex != null">
+        #{bossSex,jdbcType=VARCHAR},
+      </if>
+      <if test="bossIdCountry != null">
+        #{bossIdCountry,jdbcType=VARCHAR},
+      </if>
+      <if test="bossIdType != null">
+        #{bossIdType,jdbcType=VARCHAR},
+      </if>
+      <if test="bossSdate != null">
+        #{bossSdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bossEdate != null">
+        #{bossEdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bossIdNo != null">
+        #{bossIdNo,jdbcType=VARCHAR},
+      </if>
+      <if test="bossTel != null">
+        #{bossTel,jdbcType=VARCHAR},
+      </if>
+      <if test="bossEmail != null">
+        #{bossEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="bossJob != null">
+        #{bossJob,jdbcType=VARCHAR},
+      </if>
+      <if test="bossAddress != null">
+        #{bossAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="bossPositive != null">
+        #{bossPositive,jdbcType=VARCHAR},
+      </if>
+      <if test="bossBack != null">
+        #{bossBack,jdbcType=VARCHAR},
+      </if>
+      <if test="blType != null">
+        #{blType,jdbcType=VARCHAR},
+      </if>
+      <if test="blSdate != null">
+        #{blSdate,jdbcType=DATE},
+      </if>
+      <if test="blEdate != null">
+        #{blEdate,jdbcType=DATE},
+      </if>
+      <if test="blNo != null">
+        #{blNo,jdbcType=VARCHAR},
+      </if>
+      <if test="blPic != null">
+        #{blPic,jdbcType=VARCHAR},
+      </if>
+      <if test="bankName != null">
+        #{bankName,jdbcType=VARCHAR},
+      </if>
+      <if test="accountName != null">
+        #{accountName,jdbcType=VARCHAR},
+      </if>
+      <if test="accountNo != null">
+        #{accountNo,jdbcType=VARCHAR},
+      </if>
+      <if test="accountType != null">
+        #{accountType,jdbcType=VARCHAR},
+      </if>
+      <if test="bankNo != null">
+        #{bankNo,jdbcType=VARCHAR},
+      </if>
+      <if test="accountBoss != null">
+        #{accountBoss,jdbcType=VARCHAR},
+      </if>
+      <if test="accountIdType != null">
+        #{accountIdType,jdbcType=VARCHAR},
+      </if>
+      <if test="accountIdNo != null">
+        #{accountIdNo,jdbcType=VARCHAR},
+      </if>
+      <if test="intro != null">
+        #{intro,jdbcType=VARCHAR},
+      </if>
+      <if test="admName != null">
+        #{admName,jdbcType=VARCHAR},
+      </if>
+      <if test="occNo != null">
+        #{occNo,jdbcType=VARCHAR},
+      </if>
+      <if test="occSdate != null">
+        #{occSdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="occEdate != null">
+        #{occEdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="occPic != null">
+        #{occPic,jdbcType=VARCHAR},
+      </if>
+      <if test="trcNo != null">
+        #{trcNo,jdbcType=VARCHAR},
+      </if>
+      <if test="trcSdate != null">
+        #{trcSdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="trcEdate != null">
+        #{trcEdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="trcPic != null">
+        #{trcPic,jdbcType=VARCHAR},
+      </if>
+      <if test="tag != null">
+        #{tag,jdbcType=VARCHAR},
+      </if>
+      <if test="financialContact != null">
+        #{financialContact,jdbcType=VARCHAR},
+      </if>
+      <if test="financialTel != null">
+        #{financialTel,jdbcType=VARCHAR},
+      </if>
+      <if test="logo != null">
+        #{logo,jdbcType=VARCHAR},
+      </if>
+      <if test="licencePic != null">
+        #{licencePic,jdbcType=VARCHAR},
+      </if>
+      <if test="licencePic2 != null">
+        #{licencePic2,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic1 != null">
+        #{otherPic1,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic2 != null">
+        #{otherPic2,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic3 != null">
+        #{otherPic3,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic4 != null">
+        #{otherPic4,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyDate != null">
+        #{modifyDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errcode != null">
+        #{errcode,jdbcType=INTEGER},
+      </if>
+      <if test="errcodeMsg != null">
+        #{errcodeMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="step != null">
+        #{step,jdbcType=VARCHAR},
+      </if>
+      <if test="stepStatus != null">
+        #{stepStatus,jdbcType=VARCHAR},
+      </if>
+    
+    </trim>
+  </insert>
+  
+  <update id="updateFeedbackMsg" parameterType="com.aiiju.pojo.PAMerchant" >
+    update pa_merchant
+    <set >
+       <if test="mctNo != null" >
+        mct_no = #{mctNo,jdbcType=VARCHAR},
+      </if>
+      <if test="errcode != null" >
+        errcode = #{errcode},
+      </if>
+       <if test="errcodeMsg != null" >
+        errcode_msg = #{errcodeMsg},
+      </if>
+         <if test="step != null" >
+        step = #{step},
+      </if>
+         <if test="stepStatus != null" >
+        step_status = #{stepStatus},
+      </if>
+      </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  
+  
+  <update id="update" parameterType="com.aiiju.pojo.PAMerchant">
+    update pa_merchant
+    <set>
+      <if test="parentStoreId != null">
+        parent_store_id = #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="storeId != null">
+        store_id = #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="mctNo != null">
+        mct_no = #{mctNo,jdbcType=VARCHAR},
+      </if>
+      <if test="traId != null">
+        tra_id = #{traId,jdbcType=VARCHAR},
+      </if>
+      <if test="mctName != null">
+        mct_name = #{mctName,jdbcType=VARCHAR},
+      </if>
+      <if test="brandName != null">
+        brand_name = #{brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="cityid != null">
+        cityid = #{cityid,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null">
+        tel = #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="openHours != null">
+        open_hours = #{openHours,jdbcType=VARCHAR},
+      </if>
+      <if test="clsid != null">
+        clsid = #{clsid,jdbcType=VARCHAR},
+      </if>
+      <if test="clsidName != null">
+        clsid_name = #{clsidName,jdbcType=VARCHAR},
+      </if>
+      
+      <if test="bossName != null">
+        boss_name = #{bossName,jdbcType=VARCHAR},
+      </if>
+      <if test="bossSex != null">
+        boss_sex = #{bossSex,jdbcType=VARCHAR},
+      </if>
+      <if test="bossIdCountry != null">
+        boss_id_country = #{bossIdCountry,jdbcType=VARCHAR},
+      </if>
+      <if test="bossIdType != null">
+        boss_id_type = #{bossIdType,jdbcType=VARCHAR},
+      </if>
+      <if test="bossSdate != null">
+        boss_sdate = #{bossSdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bossEdate != null">
+        boss_edate = #{bossEdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="bossIdNo != null">
+        boss_id_no = #{bossIdNo,jdbcType=VARCHAR},
+      </if>
+      <if test="bossTel != null">
+        boss_tel = #{bossTel,jdbcType=VARCHAR},
+      </if>
+      <if test="bossEmail != null">
+        boss_email = #{bossEmail,jdbcType=VARCHAR},
+      </if>
+      <if test="bossJob != null">
+        boss_job = #{bossJob,jdbcType=VARCHAR},
+      </if>
+      <if test="bossAddress != null">
+        boss_address = #{bossAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="bossPositive != null">
+        boss_positive = #{bossPositive,jdbcType=VARCHAR},
+      </if>
+      <if test="bossBack != null">
+        boss_back = #{bossBack,jdbcType=VARCHAR},
+      </if>
+      <if test="blType != null">
+        bl_type = #{blType,jdbcType=VARCHAR},
+      </if>
+      <if test="blSdate != null">
+        bl_sdate = #{blSdate,jdbcType=DATE},
+      </if>
+      <if test="blEdate != null">
+        bl_edate = #{blEdate,jdbcType=DATE},
+      </if>
+      <if test="blNo != null">
+        bl_no = #{blNo,jdbcType=VARCHAR},
+      </if>
+      <if test="blPic != null">
+        bl_pic = #{blPic,jdbcType=VARCHAR},
+      </if>
+      <if test="bankName != null">
+        bank_name = #{bankName,jdbcType=VARCHAR},
+      </if>
+      <if test="accountName != null">
+        account_name = #{accountName,jdbcType=VARCHAR},
+      </if>
+      <if test="accountNo != null">
+        account_no = #{accountNo,jdbcType=VARCHAR},
+      </if>
+      <if test="accountType != null">
+        account_type = #{accountType,jdbcType=VARCHAR},
+      </if>
+      <if test="bankNo != null">
+        bank_no = #{bankNo,jdbcType=VARCHAR},
+      </if>
+      <if test="accountBoss != null">
+        account_boss = #{accountBoss,jdbcType=VARCHAR},
+      </if>
+      <if test="accountIdType != null">
+        account_id_type = #{accountIdType,jdbcType=VARCHAR},
+      </if>
+      <if test="accountIdNo != null">
+        account_id_no = #{accountIdNo,jdbcType=VARCHAR},
+      </if>
+      <if test="intro != null">
+        intro = #{intro,jdbcType=VARCHAR},
+      </if>
+      <if test="admName != null">
+        adm_name = #{admName,jdbcType=VARCHAR},
+      </if>
+      <if test="occNo != null">
+        occ_no = #{occNo,jdbcType=VARCHAR},
+      </if>
+      <if test="occSdate != null">
+        occ_sdate = #{occSdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="occEdate != null">
+        occ_edate = #{occEdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="occPic != null">
+        occ_pic = #{occPic,jdbcType=VARCHAR},
+      </if>
+      <if test="trcNo != null">
+        trc_no = #{trcNo,jdbcType=VARCHAR},
+      </if>
+      <if test="trcSdate != null">
+        trc_sdate = #{trcSdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="trcEdate != null">
+        trc_edate = #{trcEdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="trcPic != null">
+        trc_pic = #{trcPic,jdbcType=VARCHAR},
+      </if>
+      <if test="tag != null">
+        tag = #{tag,jdbcType=VARCHAR},
+      </if>
+      <if test="financialContact != null">
+        financial_contact = #{financialContact,jdbcType=VARCHAR},
+      </if>
+      <if test="financialTel != null">
+        financial_tel = #{financialTel,jdbcType=VARCHAR},
+      </if>
+      <if test="logo != null">
+        logo = #{logo,jdbcType=VARCHAR},
+      </if>
+      <if test="licencePic != null">
+        licence_pic = #{licencePic,jdbcType=VARCHAR},
+      </if>
+      <if test="licencePic2 != null">
+        licence_pic2 = #{licencePic2,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic1 != null">
+        other_pic1 = #{otherPic1,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic2 != null">
+        other_pic2 = #{otherPic2,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic3 != null">
+        other_pic3 = #{otherPic3,jdbcType=VARCHAR},
+      </if>
+      <if test="otherPic4 != null">
+        other_pic4 = #{otherPic4,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        create_date = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyDate != null">
+        modify_date = #{modifyDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errcode != null">
+        errcode = #{errcode,jdbcType=INTEGER},
+      </if>
+      <if test="errcodeMsg != null">
+        errcode_msg = #{errcodeMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="step != null">
+        step = #{step,jdbcType=VARCHAR},
+      </if>
+      <if test="stepStatus != null">
+        step_status = #{stepStatus,jdbcType=VARCHAR},
+      </if>
+ 
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+ 
+ 
+ 	<!-- 批量插入 -->
+	<insert id="insertBatchMerClass" parameterType="java.util.ArrayList">
+		insert into pa_mer_class(first_level,first_level_name,second_level,second_level_name) values
+		<foreach collection="list" item="obj" index="index" separator=",">  
+			(#{obj.first_level},#{obj.first_level_name},#{obj.second_level},#{obj.second_level_name})
+    	</foreach>  
+	</insert>
+ 
+	  <select id="getMctClass" resultType="net.sf.json.JSONObject"  >
+	    select * from pa_mer_class order by first_level 
+	  </select>
+  
+</mapper>

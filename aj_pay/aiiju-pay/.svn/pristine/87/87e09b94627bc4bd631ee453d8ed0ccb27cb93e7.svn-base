@@ -1,0 +1,250 @@
+package com.aiiju.pay.bo;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.aiiju.common.util.JsonUtils;
+import com.aiiju.pay.constant.TradeConstant;
+import com.aiiju.pojo.AppAuth;
+import com.aiiju.pojo.Deal;
+import com.aiiju.pojo.DealDetail;
+
+/**
+ * 
+ * @ClassName: DealBuilder
+ * @Description: 订单Builder
+ * @author 小飞
+ * @date 2016年12月3日 下午3:06:27
+ *
+ */
+public class DealBuilder {
+
+    private static Deal prototype = new Deal();
+
+    /**
+     * 创建台卡流水订单
+     * 
+     * @param outTradeNo
+     * @param price
+     * @param shopId
+     * @return
+     */
+    public static Deal buildDecometerOrder(String payType, String outTradeNo, HttpServletRequest req ,String userId,String tradeType) {
+    
+    	  String price = String.format("%.2f", Double.parseDouble(req.getParameter("price")));
+        BigDecimal dbPrice = new BigDecimal(price);
+        BigDecimal dbPrice2 = new BigDecimal("0.00");
+        // 流水信息
+        Deal deal = (Deal) prototype.clone();
+        
+        deal.setTradeType(tradeType);
+        deal.setPayTypeDetail(payType);
+        deal.setPayType(payType.substring(0, 1));
+       
+        deal.setReceTypeDesc(TradeConstant.getReceTypeDescMap().get(payType));
+        deal.setPayTypeDetail(payType);
+		String privType = req.getParameter("privType");
+		
+		if(privType!=null&&privType.length()>0){
+			
+		}else{
+			privType = "无";
+		}
+		
+		deal.setPrivType(privType);
+        deal.setPrice(dbPrice);
+        deal.setSumPrice(dbPrice);
+        deal.setSerialNum(outTradeNo);
+        deal.setSellNum(outTradeNo.substring(outTradeNo.indexOf("XS")));
+        deal.setPrivPrice(dbPrice2);
+        deal.setShouldPrice(dbPrice);
+        deal.setActualPrice(dbPrice);
+        deal.setChangePrice(dbPrice2);
+        deal.setRoundPrice(dbPrice2);
+        deal.setCanRefundFee(deal.getPrice());
+        deal.setDealDate(new Date());
+        deal.setStatus(Byte.parseByte("2"));// 流水订单状态 1：完成 2：进行中 3：失败
+        deal.setStoreId(req.getParameter("storeId"));
+        deal.setSellerId(userId);
+        deal.setCreateDate(new Date());  
+        deal.setTradeStatus("未支付");
+        
+        deal.setMemberPhone(req.getParameter("memberPhone"));
+        deal.setParentStoreId(req.getParameter("parentStoreId"));
+        // 商品详情
+        List<DealDetail> details = new ArrayList<DealDetail>();
+        DealDetail detail = new DealDetail();
+//        detail.setGoodsName("台卡收款");
+        detail.setGoodsName("无码商品");
+       // detail.setNum(1);
+        detail.setNum(new BigDecimal(1));
+        detail.setPrice(dbPrice);
+        detail.setSerialNum(deal.getSerialNum());
+        detail.setCreateDate(deal.getCreateDate());
+        details.add(detail);
+
+        deal.setDetails(details);
+        return deal;
+    }
+
+    /**
+     * 创建订单
+     * 
+     * @param req
+     * @param outTradeNo
+     * @param shopId
+     * @return
+     */
+    public static Deal buildOrder(HttpServletRequest req, String receType, String outTradeNo, AppAuth auth,String tradeType) {
+        Deal deal = createOrder(req, receType, outTradeNo,auth.getStoreId(), auth.getUserId(),tradeType);// tradeType  交易类型，1收款，2退款
+        return deal;
+    }
+
+    /**
+     * 创建现金订单
+     * 
+     * @param req
+     * @param outTradeNo
+     * @param shopId
+     * @return
+     */
+    public static Deal buildCashOrder(HttpServletRequest req, String outTradeNo, String storeId,String tradeType) {
+        Deal deal = createOrder(req, "00", outTradeNo, storeId, null,tradeType);// tradeType  交易类型，1收款，2退款
+                                                                      // com.aiiju.pay.util.Constant中定义的参数
+        return deal;
+    }
+
+    /**
+     * 接口退款订单
+     * 
+     * @param refundType
+     * @param outTradeNo
+     * @param outRequestNo
+     * @param price
+     * @param params
+     * @return
+     */
+    public static Deal buildRefundOrder(HttpServletRequest req, String refundType, String originalOutTradeNo, String newOutTradeNo,
+            Map<String, String> params,String tradeType,String outRefundNo) {
+        BigDecimal dbPrice = new BigDecimal("-" + req.getParameter("refundFee"));
+        BigDecimal dbPrice2 = new BigDecimal("0.00");
+        // 流水信息
+        Deal deal = (Deal) prototype.clone();
+        deal.setTradeType(tradeType);
+        deal.setRefundType(refundType);
+        deal.setPayTypeDetail(refundType);
+        deal.setReceTypeDesc(TradeConstant.getRefundTypeDescMap().get(refundType));
+        deal.setPrivType("无");
+        deal.setPrice(dbPrice);
+        deal.setSumPrice(dbPrice);
+        deal.setOriginalSerialNum(originalOutTradeNo);
+        deal.setSerialNum(newOutTradeNo);
+        deal.setSellNum(newOutTradeNo.substring(newOutTradeNo.indexOf("TK")));
+        deal.setPrivPrice(dbPrice2);
+        deal.setShouldPrice(dbPrice);
+        deal.setActualPrice(dbPrice);
+        deal.setChangePrice(dbPrice2);
+        deal.setRoundPrice(dbPrice2);
+        deal.setOperatorId(req.getParameter("operatorId"));
+        deal.setOperatorName(req.getParameter("operatorName"));
+        deal.setDealDate(new Date());
+        deal.setStatus(Byte.parseByte("2"));// 流水订单状态 1：完成 2：进行中 3：失败
+        deal.setStoreId(params.get("storeId"));
+        deal.setSellerId(params.get("sellerId"));
+        deal.setRemark(req.getParameter("remark"));
+        deal.setCreateDate(new Date());
+        
+      if(refundType.startsWith("0")){
+        	 deal.setTradeStatus("已退款");
+      }
+       
+        deal.setParentStoreId(req.getParameter("parentStoreId"));
+        deal.setOutRefundNo(outRefundNo);
+        return deal;
+    }
+
+    /**
+     * 现金退款
+     * 
+     * @param req
+     * @param outTradeNo
+     * @param storeId
+     * @return
+     */
+    public static Deal buildCashRefundOrder(HttpServletRequest req, String newOutTradeNo, String storeId,String tradeType,String outRefundNo) {
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("storeId", storeId);
+        Deal deal = buildRefundOrder(req, "0", req.getParameter("originalOutTradeNo"), newOutTradeNo, params,tradeType,outRefundNo);
+        return deal;
+    }
+
+    private static Deal createOrder(HttpServletRequest req, String payType, String outTradeNo, String storeId, String sellerId,String tradeType) {
+        // 流水信息
+        Deal deal = (Deal) prototype.clone();
+        deal.setTradeType(tradeType);
+        deal.setPrice(new BigDecimal(req.getParameter("price")));
+        deal.setSerialNum(outTradeNo);
+        deal.setSellNum(outTradeNo.substring(outTradeNo.indexOf("XS")));
+        deal.setPayTypeDetail(payType);
+        deal.setPayType(payType.substring(0, 1));
+        deal.setReceTypeDesc(TradeConstant.getReceTypeDescMap().get(payType));
+        deal.setPayTypeDetail(payType);
+        deal.setSumPrice(new BigDecimal(req.getParameter("sumPrice")));
+        deal.setPrivType(req.getParameter("privType"));
+        deal.setPrivPrice(new BigDecimal(req.getParameter("privPrice")));
+        deal.setShouldPrice(new BigDecimal(req.getParameter("shouldPrice")));
+        deal.setActualPrice(new BigDecimal(req.getParameter("actualPrice")));
+        deal.setChangePrice(new BigDecimal(req.getParameter("changePrice")));
+        deal.setRoundPrice(new BigDecimal(req.getParameter("roundPrice")));
+        deal.setCanRefundFee(deal.getPrice());
+        deal.setOperatorId(req.getParameter("operatorId"));
+        deal.setOperatorName(req.getParameter("operatorName"));
+        deal.setDealDate(new Date());
+        deal.setStoreId(storeId);
+        deal.setSellerId(sellerId);// 支付宝方式才会有
+        deal.setStatus(Byte.parseByte("2"));// 流水订单状态 1：完成 2：进行中 3：失败
+        deal.setRemark(req.getParameter("remark"));
+        
+        if(payType.startsWith("0")){
+        	
+        	  deal.setTradeStatus("已支付");  //现金收款，直接显示已支付
+        }else{
+        	 deal.setTradeStatus("未支付");//其他渠道收款，初始值是未支付，需要等到回调 ，若回调成功，更新为已支付
+        }
+        
+      
+        deal.setMemberPhone(req.getParameter("memberPhone"));
+        deal.setCreateDate(new Date());
+        deal.setParentStoreId(req.getParameter("parentStoreId"));
+        // 商品详情
+        if (StringUtils.isBlank(req.getParameter("detail"))) {
+            List<DealDetail> details = new ArrayList<DealDetail>();
+            DealDetail detail = new DealDetail();
+//            detail.setGoodsName(TradeConstant.getReceTypeDescMap().get(payType) + "收款");
+            detail.setGoodsName("无码商品");
+            detail.setNum(new BigDecimal(1));
+            detail.setPrice(deal.getPrice());
+            detail.setSerialNum(deal.getSerialNum());
+            detail.setCreateDate(deal.getCreateDate());
+            details.add(detail);
+            deal.setDetails(details);
+        } else {
+            List<DealDetail> details = JsonUtils.jsonToList(req.getParameter("detail"), DealDetail.class);
+            
+            for (DealDetail dealDetail : details) {
+            	dealDetail.setCreateDate(deal.getCreateDate());
+			}
+            deal.setDetails(details);
+        }
+        return deal;
+    }
+
+}

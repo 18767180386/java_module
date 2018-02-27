@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.JPushMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.JPush" >
+		insert into jpush(phone,operator_id,equipment_code,store_id,status,create_date,modify_date,phone_type,phone_host_name,env_type) 
+			values(#{phone},#{operatorId},#{equipmentCode},#{storeId},#{status},#{createDate},#{createDate},#{phoneType},#{phoneHostName},#{envType})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.JPush">
+		update jpush 
+		 <set>
+		   <if test="name != null">
+		   g.equipment_code = #{equipmentCode},
+		   </if>
+		   	<if test="name != null">
+		   g.phone_type = #{phoneType},
+		   </if>
+		   <if test="name != null">
+		   g.phone = #{phone},
+		   </if>
+		   <if test="envType != null">
+				g.env_type = #{envType},
+	     </if> 
+		</set>
+			where operator_id = #{operatorId}
+	</update>
+	
+	<update id="updateStatus" parameterType="com.aiiju.pojo.JPush">
+	  update jpush g
+	 <set>
+	     <if test="operatorId != null">
+				g.operator_id = #{operatorId},
+	     </if>
+	 	 <if test="storeId != null">
+				g.store_id = #{storeId},
+	     </if>
+	 	 <if test="status != null">
+				g.status = #{status},
+	     </if>
+	 	 <if test="phoneType != null">
+				g.phone_type = #{phoneType},
+	    </if>
+	 	 <if test="modifyDate != null">
+				g.modify_date = #{modifyDate},
+	     </if>
+	 	 <if test="phone != null">
+				g.phone = #{phone},
+	     </if>
+	     <if test="phoneHostName != null">
+				g.phone_host_name = #{phoneHostName},
+	     </if>
+	     <if test="envType != null">
+				g.env_type = #{envType},
+	     </if> 
+		</set>
+		where equipment_code = #{equipmentCode}
+	</update>
+	
+		
+	
+	
+   <update id="updateByEquipmentCode" parameterType="com.aiiju.pojo.JPush">
+		update jpush g
+		
+			 <set>
+	     <if test="operatorId != null">
+				g.operator_id = #{operatorId},
+	     </if>
+	 	 <if test="storeId != null">
+				g.store_id = #{storeId},
+	     </if>
+	 	 <if test="status != null">
+				g.status = #{status},
+	     </if>
+	 	 <if test="phoneType != null">
+				g.phone_type = #{phoneType},
+	    </if>
+	 	 <if test="modifyDate != null">
+				g.modify_date = #{modifyDate},
+	     </if>
+	 	 <if test="phone != null">
+				g.phone = #{phone},
+	     </if>
+	     <if test="phoneHostName != null">
+				g.phone_host_name = #{phoneHostName},
+	     </if>
+	     <if test="envType != null">
+				g.env_type = #{envType},
+	     </if>
+		</set>
+			where equipment_code = #{equipmentCode}
+	</update>
+	
+	
+	<select id="getByOperatorId" parameterType="java.lang.String" resultType="com.aiiju.pojo.JPush">
+		select operator_id operatorId,equipment_code equipmentCode,store_id storeId,phone_type phoneType,status,phone,phone_host_name  phoneHostName,env_type envType from jpush 
+		where operator_id = #{operatorId} and status=1
+	</select>
+
+	<select id="getByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.JPush">
+		select operator_id operatorId,equipment_code equipmentCode,store_id storeId,phone_type phoneType,status,phone,phone_host_name  phoneHostName,env_type envType from jpush 
+		where store_id = #{storeId} and status=1
+	</select>
+	
+	<select id="getListByOperatorId" parameterType="java.lang.String" resultType="com.aiiju.pojo.JPush">
+		select operator_id operatorId,equipment_code equipmentCode,store_id storeId,phone_type phoneType,status,phone,phone_host_name  phoneHostName,env_type envType from jpush 
+		where operator_id = #{operatorId}
+	</select>
+	
+		<select id="getByEquipmentCode" parameterType="java.lang.String" resultType="String">
+		select equipment_code equipmentCode from jpush 
+		where equipment_code = #{equipmentCode} 
+	</select>
+	
+	<select id="getJpushByEquipmentCode" parameterType="java.lang.String" resultType="com.aiiju.pojo.JPush">
+		select operator_id operatorId,equipment_code equipmentCode,store_id storeId,phone_type phoneType,status,phone,phone_host_name  phoneHostName,env_type envType from jpush 
+		where equipment_code = #{equipmentCode} 
+	</select>
+	
+	
+	<select id="getAllEquipmentCode"  resultType="com.aiiju.pojo.JPush">
+		select equipment_code equipmentCode from jpush 
+		where  status=1
+	</select>
+	
+	
+</mapper>

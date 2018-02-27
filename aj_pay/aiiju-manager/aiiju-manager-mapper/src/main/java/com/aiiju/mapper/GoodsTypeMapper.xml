@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.GoodsTypeMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.GoodsType" useGeneratedKeys="true"  keyProperty="id">
+		insert into goods_type(name,store_id,create_date,relation_goods_type_id) values(#{name},#{storeId},#{createDate},#{relationGoodsTypeId})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.GoodsType">
+		update goods_type
+		<set>
+			<if test="name != null">
+				name = #{name},
+			</if>
+			<if test="relationGoodsTypeId != null">
+				relation_goods_type_id = #{relationGoodsTypeId},
+			</if>
+		</set>
+		  where id = #{id}
+	</update>
+
+	<update id="updateGoodsType" parameterType="com.aiiju.pojo.GoodsType">
+		update goods_type name = #{name}, modify_date = #{modifyDate} where id = #{id}
+	</update>
+
+	 <update id="updateDefaultGoodsTypeRelation" parameterType="java.util.Map">
+		update goods_type set relation_goods_type_id = #{goodsType} where store_id = #{storeId} and name='默认分类'
+	</update>
+	
+	<sql id="selectSql">
+		id,name,store_id,create_date,modify_date,relation_goods_type_id
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.GoodsType" id="goodsTypeMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name" />
+		<result column="store_id" property="storeId" />
+		<result column="create_date" property="createDate" />
+		<result column="modify_date" property="modifyDate" />
+		<result column="relation_goods_type_id" property="relationGoodsTypeId" />
+		
+	</resultMap>
+	
+	
+	
+	
+	<select id="getById" parameterType="java.lang.Long" resultMap="goodsTypeMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where id = #{id}
+	</select>
+	
+	<select id="getTypeNameById" parameterType="java.lang.Long" resultType="java.lang.String">
+		select name as goodsTypeName
+		 from goods_type where id = #{id}
+	</select>
+
+	 <select id="getByRelationGoodsTypeId"  resultMap="goodsTypeMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where relation_goods_type_id = #{0} and store_id  =#{1}
+	</select>
+	
+	<select id="getDefaultGoodsType"  resultMap="goodsTypeMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where  store_id  = #{0} and name=#{1}
+	</select>
+	
+	<select id="getAllByStoreId" parameterType="java.lang.String" resultMap="goodsTypeMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where store_id = #{storeId}
+	</select>
+	
+	<select id="getModifyGoodTypes" parameterType="java.lang.String" resultMap="goodsTypeMap">
+		select 
+			g1.* from goods_type g1 ,goods_type g2
+		 where 
+		 	g1.relation_goods_type_id = g2.id 
+		 and 
+		 	g1.store_id = #{storeId} 
+		 and 
+		 	g1.name != g2.name
+	</select>
+	
+
+	
+	<resultMap type="com.aiiju.pojo.GoodsType" id="goodsTypeAndGoodsMap" extends="goodsTypeMap">
+		<collection property="goodsList" column="id" select="com.aiiju.mapper.GoodsMapper.getByIdWithoutGoodsType"></collection>
+	</resultMap>
+	
+	<select id="getAllWithGoodsByStoreId" parameterType="java.lang.String" resultMap="goodsTypeAndGoodsMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where store_id = #{storeId}
+	</select>
+	
+	<delete id="deleteById" parameterType="java.lang.Long">
+		delete from goods_type where id = #{id}
+	</delete>
+
+	<select id="getParentGoodsList" parameterType="java.lang.String" resultMap="goodsTypeAndGoodsMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where store_id = #{storeId}
+	</select>
+	
+	 <select id="getRelationGoods" parameterType="java.lang.String" resultMap="goodsTypeAndGoodsMap">
+		SELECT
+			<include refid="selectSql"></include>
+		FROM
+			goods_type
+		WHERE
+			relation_goods_type_id = #{relationGoodsTypeId}
+	</select> 
+	
+	<select id="getNeedDeleteGoodsType" parameterType="java.lang.String" resultType="java.lang.Long">
+		SELECT
+			id
+		FROM
+			goods_type
+		WHERE
+			store_id = #{storeId}
+		AND relation_goods_type_id NOT IN (
+			SELECT
+				id
+			FROM
+				goods_type
+			WHERE
+				store_id = (
+					SELECT
+						parent_store_id
+					FROM
+						shop
+					WHERE
+						store_id = #{storeId}
+				)
+		)
+	</select>
+	
+	
+	<select id="getSonGoodsTypeId" parameterType="java.lang.String" resultType="java.lang.Long">
+		SELECT
+			id
+		FROM
+			goods_type
+		WHERE
+			store_id = #{0}
+		AND relation_goods_type_id = #{1}
+	</select>
+	
+	<select id="getNeedAddGoodsType" parameterType="java.lang.String" resultType="java.lang.Long">
+		SELECT
+			id
+		FROM
+			goods_type
+		WHERE
+			store_id = #{0}
+		AND id NOT IN (
+			SELECT
+				relation_goods_type_id
+			FROM
+				goods_type
+			WHERE
+				store_id = #{1}
+			)
+	</select> 
+	
+	<select id="getGoodsByRelativeGoodId" parameterType="java.lang.String" resultMap="goodsTypeAndGoodsMap">
+		SELECT
+			<include refid="selectSql"></include>
+		FROM
+			goods_type
+		WHERE
+			relation_goods_type_id = #{id} 
+	</select> 
+	
+	
+	<select id="getGoodsTypeRelatedGoods" parameterType="java.util.Map" resultMap="goodsTypeAndGoodsMap">
+		SELECT
+			<include refid="selectSql"></include>
+		FROM
+			goods_type t left join (select * from goods where ) g on t.id = g.goods_type_id 
+		WHERE
+			relation_goods_type_id = #{id} 
+	</select>
+
+</mapper>

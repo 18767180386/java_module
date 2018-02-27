@@ -1,0 +1,62 @@
+package com.aiiju.store.service;
+
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.http.HttpRequest;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.pojo.Shop;
+/**
+ * 
+ * @ClassName: ShopService 
+ * @Description: 店铺 Service
+ * @author 小飞 
+ * @date 2016年11月9日 下午5:02:50 
+ *
+ */
+public interface ShopService {
+
+	public Result save(Shop shop,String name);
+	public Result saveShop(Shop shop);
+	public Result getShopList(String role,String storeId);
+	public Result switchList(String role,String storeId);
+	public Result queryShopList(String role,String storeId);
+	
+	public Result update(Shop shop);
+	public Result updateShopGoodsAuth(Shop shop);
+	
+	public Result getById(Integer id);
+	
+	public Result getSwitchShop(Integer id);
+	
+	
+	public Result deleteById(Integer id);
+
+	public Result upload(MultipartFile uploadFile,String storeId);
+
+	public String getShopName(Integer shopId);
+	
+	public String getShopName(String storeId);
+	/**
+	 * 开启同步功能
+	 * @param storeId	主店铺的id地址
+	 * @param status 	0表示关闭同步，1表示开启同步
+	 * @return
+	 */
+	public String openSynchronize(String storeId, String status);
+	
+	/**
+	 * 判断这个店铺是否需要 把新增的商品信息发送给ERP系统
+	 * @param storeId 店铺的id
+	 * @return TRUE 店铺关联了ERP系统，FALSE店铺没有关联ERP系统
+	 */
+	public boolean relativeERP(String storeId);
+	
+
+	
+
+	
+}

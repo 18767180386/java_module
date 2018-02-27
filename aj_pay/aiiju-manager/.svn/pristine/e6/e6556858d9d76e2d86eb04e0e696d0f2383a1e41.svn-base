@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.MPointsDetailMapper">
+
+
+
+	<insert id="add" parameterType="com.aiiju.pojo.MPointsDetail"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		member_m_points(phone,store_id,deal_serial_num,deal_time,get_points_value,used_points_value,status)
+		values(#{phone},#{storeId},#{dealSerialNum},#{dealTime},#{getPointsValue},#{usedPointsValue},#{status})
+	</insert>
+
+
+	<sql id="selectSql">
+		id,phone,store_id,deal_serial_num,deal_time,get_points_value,used_points_value,status
+	</sql>
+
+	<resultMap type="com.aiiju.pojo.MPointsDetail" id="MPointsMap">
+		<id column="id" property="id" />
+		<result column="phone" property="phone" />
+		<result column="store_id" property="storeId" />
+		<result column="deal_serial_num" property="dealSerialNum" />
+		<result column="deal_time" property="dealTime" />
+		<result column="get_points_value" property="getPointsValue" />
+		<result column="used_points_value" property="usedPointsValue" />
+		<result column="status" property="status" />
+	</resultMap>
+
+
+
+	<select id="getPointsValueList" parameterType="java.util.Map" resultMap="MPointsMap">
+		select id ,deal_time,get_points_value
+		 from member_m_points where phone = #{phone} and store_id =#{storeId}  and get_points_value>0 and YEAR(deal_time)=YEAR(NOW()) and status=1 order by deal_time desc limit #{index},#{pageSize} 
+	</select>
+
+
+	<select id="usedPointsValueList" parameterType="java.util.Map" resultMap="MPointsMap">
+		select id ,deal_time,used_points_value
+		 from member_m_points where phone = #{phone} and store_id =#{storeId} and used_points_value>0  and YEAR(deal_time)=YEAR(NOW()) and status=1  order by deal_time desc limit #{index},#{pageSize} 
+	</select>
+	
+	
+	<select id="getValidPoints" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select  SUM(get_points_value) - SUM(used_points_value) 
+		 from member_m_points where phone = #{phone} and store_id =#{storeId} and status=1   and YEAR(deal_time)=YEAR(NOW())
+	</select>
+	
+
+	<select id="getPointsValue" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select sum(get_points_value)
+		 from member_m_points where phone = #{phone} and store_id =#{storeId} and status=1    and YEAR(deal_time)=YEAR(NOW())
+	</select>
+	<select id="usedPointsValue" parameterType="java.util.Map" resultType="java.lang.Integer">
+		select  SUM(used_points_value)
+		 from member_m_points where phone = #{phone} and store_id =#{storeId} and status=1    and YEAR(deal_time)=YEAR(NOW())
+	</select>
+	
+	
+	<update id="updateMPointsDetailBySerialnum" parameterType="java.util.Map">
+		update member_m_points set status =#{status} where  deal_serial_num = #{serialnum}
+	
+	</update>
+	
+	
+</mapper>

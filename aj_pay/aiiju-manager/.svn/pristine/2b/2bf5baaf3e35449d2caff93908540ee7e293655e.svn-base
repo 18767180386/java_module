@@ -1,0 +1,63 @@
+package com.aiiju.pojo;
+
+public class JPushPhoneAuth {
+    private Integer id;
+
+    private String phone;
+
+    private String phoneAuthType;
+
+    private String allowEquipmentType;
+
+    private String notAllowEquipmentType;
+
+    private String isEquipmentAuthType;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone == null ? null : phone.trim();
+    }
+
+    public String getPhoneAuthType() {
+        return phoneAuthType;
+    }
+
+    public void setPhoneAuthType(String phoneAuthType) {
+        this.phoneAuthType = phoneAuthType == null ? null : phoneAuthType.trim();
+    }
+
+    public String getAllowEquipmentType() {
+        return allowEquipmentType;
+    }
+
+    public void setAllowEquipmentType(String allowEquipmentType) {
+        this.allowEquipmentType = allowEquipmentType == null ? null : allowEquipmentType.trim();
+    }
+
+    public String getNotAllowEquipmentType() {
+        return notAllowEquipmentType;
+    }
+
+    public void setNotAllowEquipmentType(String notAllowEquipmentType) {
+        this.notAllowEquipmentType = notAllowEquipmentType == null ? null : notAllowEquipmentType.trim();
+    }
+
+    public String getIsEquipmentAuthType() {
+        return isEquipmentAuthType;
+    }
+
+    public void setIsEquipmentAuthType(String isEquipmentAuthType) {
+        this.isEquipmentAuthType = isEquipmentAuthType == null ? null : isEquipmentAuthType.trim();
+    }
+}

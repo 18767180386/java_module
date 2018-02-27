@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.DealMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Deal"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		deal(pay_type_detail,trade_type,price,serial_num,sell_num,operator_id,operator_name,pay_type,rece_type_desc,sum_price,priv_type,priv_price,should_price,actual_price,change_price,round_price,can_refund_fee,store_id,remark,status,trade_status,seller_id,deal_date,member_phone,create_date,parent_store_id)
+		values(#{payTypeDetail},#{tradeType},#{price},#{serialNum},#{sellNum},#{operatorId},#{operatorName},#{payType},#{receTypeDesc},#{sumPrice},#{privType},#{privPrice},#{shouldPrice},#{actualPrice},#{changePrice},#{roundPrice},#{canRefundFee},#{storeId},#{remark},#{status},#{tradeStatus},#{sellerId},#{dealDate},#{memberPhone},#{createDate},#{parentStoreId})
+	</insert>
+
+	<insert id="addRefund" parameterType="com.aiiju.pojo.Deal"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		deal(out_refund_no,pay_type_detail,trade_type,price,serial_num,original_serial_num,sell_num,operator_id,operator_name,refund_type,rece_type_desc,sum_price,priv_type,priv_price,should_price,actual_price,change_price,round_price,store_id,remark,status,trade_status,seller_id,deal_date,member_phone,create_date,parent_store_id)
+		values(#{outRefundNo},#{payTypeDetail},#{tradeType},#{price},#{serialNum},#{originalSerialNum},#{sellNum},#{operatorId},#{operatorName},#{refundType},#{receTypeDesc},#{sumPrice},#{privType},#{privPrice},#{shouldPrice},#{actualPrice},#{changePrice},#{roundPrice},#{storeId},#{remark},#{status},#{tradeStatus},#{sellerId},#{dealDate},#{memberPhone},#{createDate},#{parentStoreId})
+	</insert>
+
+	<update id="update" parameterType="com.aiiju.pojo.Deal">
+		update deal
+		<set>
+			<if test="notityTime != null">
+				notity_time = #{notityTime},
+			</if>
+			<if test="tradeNo != null">
+				trade_no = #{tradeNo},
+			</if>
+			<if test="status != null">
+				status = #{status},
+			</if>
+	         <if test="tradeStatus != null">
+				trade_status = #{tradeStatus},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+
+
+	<update id="updateOldDeal" parameterType="com.aiiju.pojo.Deal">
+		update deal
+		<set>
+			<if test="tradeStatus != null">
+				trade_status = #{tradeStatus},
+			</if>
+			<if test="canRefundFee != null">
+				can_refund_fee = #{canRefundFee},
+			</if>
+		</set>
+		where id = #{id} or serial_num = #{serialNum}
+	</update>
+
+
+	<update id="updateprint" parameterType="com.aiiju.pojo.Deal">
+		update deal
+		<set>
+
+			<if test="printSendStatus != null and printSendStatus !=''">
+				print_send_status = #{printSendStatus},
+			</if>
+			<if test="printNum != null and printNum !=''">
+				print_num = #{printNum},
+			</if>
+			<if test="printDate != null and printDate !=''">
+				print_date = #{printDate},
+			</if>
+			<if test="printReceiveStatus != null and printReceiveStatus !=''">
+				print_receive_status = #{printReceiveStatus},
+			</if>
+			<if test="printOrder != null and printOrder !=''">
+				print_order = #{printOrder},
+			</if>
+			<if test="printSerial != null and printSerial !=''">
+				print_serial = #{printSerial},
+			</if>
+		</set>
+		where serial_num = #{serialNum}
+	</update>
+
+
+	<update id="updateprintBatch" parameterType="java.util.List">
+		<foreach collection="list" item="Deal" index="index" open=""
+			close="" separator=";">
+			update deal
+			<set>
+				print_receive_status = 1,
+			</set>
+			where serial_num = #{Deal.serialNum}
+		</foreach>
+	</update>
+
+
+
+	<select id="getCurrentPrintNumBySerialNum" parameterType="com.aiiju.pojo.Deal"
+		resultType="java.lang.Integer">
+		select max(print_num) as print_num
+
+		from deal where store_id = #{storeId} and print_send_status =1 and
+		date_format(deal.print_date,'%Y-%m-%d') = CURDATE()
+	</select>
+
+	<select id="getPrintedStatus" resultType="com.aiiju.pojo.Deal">
+		select id,serial_num as
+		serialNum ,print_receive_status as
+		printReceiveStatus,print_send_status as printSendStatus,print_num as
+		printNum,print_date as printDate,print_order as printOrder
+		from deal
+		where print_send_status =1 and print_receive_status !=1 and
+		TO_DAYS(NOW())- TO_DAYS(deal.print_date) &lt;= 1
+	</select>
+
+
+	<sql id="selectSql">
+		id,price,notity_time,status,trade_status,pay_type,refund_type,trade_type,original_serial_num,serial_num,sell_num,operator_id,operator_name,store_id,rece_type_desc,sum_price,priv_type,priv_price,should_price,actual_price,change_price,round_price,can_refund_fee,remark,create_date,print_receive_status,print_send_status,print_num,print_date,print_order,print_serial,pay_type_detail
+	</sql>
+
+	<resultMap type="com.aiiju.pojo.Deal" id="dealMap">
+		<id column="id" property="id" />
+		<result column="price" property="price" />
+		<result column="store_id" property="storeId" />
+		<result column="trade_status" property="tradeStatus" />
+		<result column="notity_time" property="notityTime" />
+		<result column="rece_type_desc" property="receTypeDesc" />
+		<result column="create_date" property="createDate" />
+	</resultMap>
+
+	<resultMap type="com.aiiju.pojo.Deal" id="dealRelactionMap"
+		extends="dealMap">
+		<result column="original_serial_num" property="originalSerialNum" />
+		<result column="serial_num" property="serialNum" />
+		<result column="sell_num" property="sellNum" />
+		<result column="pay_type" property="payType" />
+		<result column="refund_type" property="refundType" />
+		<result column="operator_id" property="operatorId" />
+		<result column="operator_name" property="operatorName" />
+		<result column="rece_type_desc" property="receTypeDesc" />
+		<result column="sum_price" property="sumPrice" />
+		<result column="priv_type" property="privType" />
+		<result column="priv_price" property="privPrice" />
+		<result column="should_price" property="shouldPrice" />
+		<result column="actual_price" property="actualPrice" />
+		<result column="change_price" property="changePrice" />
+		<result column="round_price" property="roundPrice" />
+		<result column="can_refund_fee" property="canRefundFee" />
+		<result column="remark" property="remark" />
+		<result column="print_receive_status" property="printReceiveStatus" />
+		<result column="print_send_status" property="printSendStatus" />
+		<result column="print_num" property="printNum" />
+		<result column="print_date" property="printDate" />
+		<result column="print_order" property="printOrder" />
+		<result column="print_serial" property="printSerial" />
+		<result column="trade_type" property="tradeType" />
+		<result column="pay_type_detail" property="payTypeDetail" />
+		<collection property="details" column="serial_num"
+			select="com.aiiju.mapper.DealDetailMapper.getBySerialNum"></collection>
+		<collection property="refoundDetails" column="original_serial_num"
+			select="com.aiiju.mapper.DealDetailMapper.getBySerialNum"></collection>			
+			
+			
+	</resultMap>
+	
+<!-- 	<sql id="selectSql"> -->
+<!-- 		id,price,serial_num,original_serial_num,sell_num,trade_no,operator_id,operator_name,trade_type,pay_type, -->
+<!-- 		pay_type_detail,refund_type,rece_type_desc,sum_price,priv_type,priv_price,should_price,actual_price, -->
+<!-- 		change_price,round_price,can_refund_fee,store_id,parent_store_id,remark,status,trade_status,notity_time, -->
+<!-- 		seller_id,deal_date,create_date,print_receive_status -->
+<!-- 	</sql> -->
+	
+
+	<select id="getById" parameterType="java.lang.Long" resultMap="dealRelactionMap">
+		select
+		<include refid="selectSql"></include>
+		from deal where id = #{id}
+	</select>
+
+	<select id="getDetailBySerialNum" parameterType="java.lang.String"
+		resultMap="dealRelactionMap">
+		select
+		<include refid="selectSql"></include>
+		from deal where serial_num = #{serialNum}
+	</select>
+
+	<select id="getPageByStoreId" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,refund_type
+		refundType,rece_type_desc receTypeDesc,deal_date dealDate,create_date
+		createDate,serial_num serialNum
+		from deal where store_id = #{storeId} and `status` = 1
+		<if test="operatorId !=null">
+			and (operator_id = #{operatorId} or operator_id is null)
+		</if>
+		<if test="serialNum !=null">
+			and (serial_num = #{serialNum})
+		</if>
+		order by create_date desc limit #{index},#{pageSize}
+	</select>
+
+	<select id="getPageByStoreId_dayTotal" parameterType="java.util.Map"
+		resultType="java.lang.String">
+		select sum(price)
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date = #{dealDate}
+		<if test="operatorId !=null">
+			and (operator_id = #{operatorId} or operator_id is null)
+		</if>
+	     
+	</select>
+
+	<select id="queryDealStatistics" resultType="java.util.Map">	
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,refund_type
+		refundType,rece_type_desc receTypeDesc,deal_date dealDate,create_date
+		createDate ,trade_type tradeType from deal
+
+		where `status` = 1 
+		and store_id in  (${queryStoreIdS})
+	    
+	    
+	    <if test="operatorId!=null and operatorId!=''">
+		    and  operator_id  = ${operatorId}
+		</if>  
+	      
+	      
+		<if test="startTime!=null and startTime!=''">
+		    <![CDATA[   and DATE_FORMAT(deal_date, '%Y-%m-%d')>=  DATE_FORMAT(#{startTime}, '%Y-%m-%d')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and DATE_FORMAT(deal_date, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d')    ]]>
+		</if>  
+
+        and pay_type_detail in (${queryPayType})
+           
+        order by create_date desc limit #{index},#{pageSize}
+	</select> 
+	
+	
+	
+	
+	
+		<select id="queryDealStatisticsBySerialNum" resultType="java.util.Map">	
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,refund_type
+		refundType,rece_type_desc receTypeDesc,deal_date dealDate,create_date
+		createDate ,trade_type tradeType from deal
+
+		where `status` = 1 
+		and store_id in  (${queryStoreIdS})
+	    and  print_serial  LIKE concat(concat('%',#{printSerial}),'%')
+	    order by create_date desc
+	 
+	</select> 
+	
+	
+	
+	<select id="queryDealStatistics_dayTotal" resultType="java.lang.String">	
+		select
+		sum(price) from deal
+		where `status` = 1 
+		and store_id in  (${queryStoreIdS})
+	     <if test="operatorId!=null and operatorId!=''">
+		    and  operator_id  = ${operatorId}
+		</if>  
+        and pay_type_detail in (${queryPayType})
+        and deal_date = #{dealDate}
+      
+	</select> 
+	
+
+	<select id="queryDealTotalMoney" resultType="java.lang.String">	
+	   select sum(price) from deal 
+	   	where `status` = 1 
+		and store_id in  (${queryStoreIdS})
+		<if test="operatorId!=null and operatorId!=''">
+		    and  operator_id  = ${operatorId}
+		</if>  
+	
+		<if test="startTime!=null and startTime!=''">
+		    <![CDATA[   and DATE_FORMAT(deal_date, '%Y-%m-%d')>=  DATE_FORMAT(#{startTime}, '%Y-%m-%d')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and DATE_FORMAT(deal_date, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d')    ]]>
+		</if>  
+        and pay_type_detail in (${queryPayType})
+
+	</select> 
+	
+	<select id="queryDealTotalMoneyBySerialNum" resultType="java.lang.String">	
+	  select sum(price) from deal 
+	   	where `status` = 1 
+		and store_id in  (${queryStoreIdS})
+      and  print_serial  LIKE concat(concat('%',#{printSerial}),'%')
+       order by create_date desc
+	</select> 
+	
+	
+	<select id="queryDealPayCount" resultType="java.lang.String">	
+	   
+         select count(*) from deal 
+         
+           	where `status` = 1 
+		and store_id in  (${queryStoreIdS}) and trade_type=1
+	    <if test="operatorId!=null and operatorId!=''">
+		    and  operator_id  = ${operatorId}
+		</if>  
+		<if test="startTime!=null and startTime!=''">
+		    <![CDATA[   and DATE_FORMAT(deal_date, '%Y-%m-%d')>=  DATE_FORMAT(#{startTime}, '%Y-%m-%d')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and DATE_FORMAT(deal_date, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d')    ]]>
+		</if>  
+		
+        and pay_type_detail in (${queryPayType})
+         
+	</select> 
+	
+	<select id="queryDealPayCountBySerialNum" resultType="java.lang.String">	
+       select count(*) from deal 
+         where `status` = 1 
+		and store_id in  (${queryStoreIdS}) and trade_type=1
+	    and  print_serial  LIKE concat(concat('%',#{printSerial}),'%')
+	     order by create_date desc
+	</select> 
+	
+	
+	<select id="queryDealRefundCount" resultType="java.lang.String">	
+	
+	   select count(*) from deal 
+
+           	where `status` = 1 
+		and store_id in  (${queryStoreIdS}) and trade_type=2
+	     <if test="operatorId!=null and operatorId!=''">
+		    and  operator_id  = ${operatorId}
+		</if>  
+		<if test="startTime!=null and startTime!=''">
+		    <![CDATA[   and DATE_FORMAT(deal_date, '%Y-%m-%d')>=  DATE_FORMAT(#{startTime}, '%Y-%m-%d')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and DATE_FORMAT(deal_date, '%Y-%m-%d') <= DATE_FORMAT(#{endTime}, '%Y-%m-%d')    ]]>
+		</if>  
+        and pay_type_detail in (${queryPayType})
+  
+	</select> 
+
+    <select id="queryDealRefundCountBySerialNum" resultType="java.lang.String">	
+	
+	    select count(*) from deal 
+         where `status` = 1 
+		and store_id in  (${queryStoreIdS}) and trade_type=2
+	     and  print_serial  LIKE concat(concat('%',#{printSerial}),'%')
+        order by create_date desc
+	</select> 
+
+	<resultMap type="com.aiiju.pojo.Deal" id="deal2Map">
+		<id column="id" property="id" />
+		<result column="serial_num" property="serialNum" />
+		<result column="original_serial_num" property="originalSerialNum" />
+		<result column="price" property="price" />
+		<result column="can_refund_fee" property="canRefundFee" />
+		<result column="status" property="status" />
+		<result column="trade_status" property="tradeStatus" />
+		<result column="seller_id" property="sellerId" />
+		<result column="pay_type" property="payType" />
+		<result column="refund_type" property="refundType" />
+		<result column="rece_type_desc" property="receTypeDesc" />
+		<result column="store_id" property="storeId" />
+		<result column="operator_id" property="operatorId" />
+		<result column="operator_name" property="operatorName" />
+	</resultMap>
+
+	<select id="getBySerialNum" parameterType="java.lang.String" resultType="com.aiiju.pojo.Deal">
+		select id,price,notity_time notityTime,
+		trade_status tradeStatus,pay_type payType,refund_type refundType,trade_type tradeType,
+		original_serial_num originalSerialNum,serial_num serialNum,sell_num sellNum,operator_id operatorId,
+		operator_name operatorName,store_id storeId,rece_type_desc receTypeDesc,sum_price sumPrice,priv_type privType,
+		priv_price privPrice,should_price shouldPrice,actual_price actualPrice,change_price changePrice,round_price roundPrice,
+		can_refund_fee canRefundFee,remark,create_date createDate,print_receive_status printReceiveStatus,status,seller_id sellerId,
+		print_send_status printSendStatus,print_num printNum,print_date printDate,print_order printOrder,print_serial printSerial,pay_type_detail payTypeDetail
+		from deal where serial_num = #{serialNum}
+	</select>
+
+	<!-- 统计 -->
+	<select id="getTotalIncome" parameterType="java.lang.String"
+		resultType="java.math.BigDecimal">
+		select sum(d.price) from deal d where d.store_id =
+		#{storeId} and d.`status` = 1
+	</select>
+
+	<select id="getSummarize" parameterType="java.util.Map"
+		resultType="java.math.BigDecimal">
+		select sum(d.price) from deal d where
+		d.store_id = #{storeId} and d.deal_date between #{start} and #{end} and
+		d.`status` = 1
+	</select>
+
+	<select id="getSummarizeByToday" parameterType="java.util.Map"
+		resultType="java.math.BigDecimal">
+		select sum(d.price) from deal d where
+		d.store_id = #{storeId} and d.deal_date = #{today} and d.`status` = 1
+	</select>
+
+	<resultMap type="com.aiiju.pojo.Deal" id="deal3Map">
+		<result column="total_price" property="price" />
+		<result column="pay_type" property="payType" />
+		<result column="trade_type" property="tradeType" />
+	</resultMap>
+
+	<select id="getSummarizeByType" parameterType="java.util.Map"
+		resultMap="deal3Map">
+		select sum(price) total_price,pay_type,trade_type from deal
+		where store_id = #{storeId} and deal_date between #{start} and #{end} and
+		`status` = 1 group by pay_type;
+	</select>
+
+	<!-- 收入流水 -->
+	<select id="getPageByToday" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,rece_type_desc
+		receTypeDesc,deal_date dealDate,create_date createDate
+		from deal where store_id = #{storeId} and deal_date = #{deal_date} and
+		`status` = 1
+		order by create_date desc limit #{index},#{pageSize}
+	</select>
+
+	<select id="getPageByDay" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,rece_type_desc
+		receTypeDesc,deal_date dealDate,create_date createDate
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date
+		between #{start} and #{end}
+		order by create_date desc limit #{index},#{pageSize}
+	</select>
+
+	<select id="getPageByType" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,rece_type_desc
+		receTypeDesc,deal_date dealDate,create_date createDate
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date
+		between #{start} and #{end} and pay_type = #{payType}
+		order by create_date desc limit #{index},#{pageSize}
+	</select>
+	
+	<select id="getPAPageByType" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,rece_type_desc
+		receTypeDesc,deal_date dealDate,create_date createDate
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date
+		between #{start} and #{end} and pay_type =4 or   pay_type =5
+		order by create_date desc limit #{index},#{pageSize}
+	</select>
+	
+		<select id="getPageByType_dayTotal" parameterType="java.util.Map"
+		resultType="java.lang.String">
+		select sum(price)
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date = #{dealDate}
+		and pay_type = #{payType}
+		group by deal_date
+	</select>
+
+	<!-- 退款统计 -->
+	<select id="getRefundSummarize" parameterType="java.util.Map"
+		resultType="java.math.BigDecimal">
+		select sum(price) total_price from deal
+		where store_id = #{storeId} and deal_date between #{start} and #{end} and
+		`status` = 1 and refund_type is not null
+	</select>
+
+	<!-- 退款流水列表 -->
+	<select id="getRefundByPage" parameterType="java.util.Map"
+		resultType="java.util.Map">
+		select
+		id,price,trade_status tradeStatus,store_id storeId,pay_type payType,refund_type
+		refundType,rece_type_desc receTypeDesc,deal_date dealDate,create_date
+		createDate
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date
+		between #{start} and #{end} and refund_type is not null
+		order by create_date desc limit #{index},#{pageSize}
+	</select>
+	<!-- 退款流水列表 -->
+	<select id="getRefundByPage_dayTotal" parameterType="java.util.Map"
+		resultType="java.lang.String">
+		select sum(price)
+		from deal where store_id = #{storeId} and `status` = 1 and deal_date = #{dealDate}
+		 and refund_type is not null
+		
+	</select>
+		
+	<select id="getDealByGiveDateAndStoreID" parameterType="java.util.Map"
+		 resultMap="dealRelactionMap">
+		SELECT
+			<include refid="selectSql"></include>
+		FROM
+			deal
+		WHERE
+			store_id = #{storeId}
+		AND STATUS = 1
+		AND create_date BETWEEN #{start}
+		AND #{end} 
+		order by create_date 
+		LIMIT #{page}, #{pageSize}
+	</select>
+
+	<select id="getOnePersonTotalIncome"   parameterType="java.util.Map" resultType="java.lang.String">	
+		select sum(price)  sumPrice from deal
+		where `status` = 1 
+
+        and  operator_id  = ${operatorId}
+ 
+		<if test="startTime!=null and startTime!=''">
+		    <![CDATA[   and create_date>=  DATE_FORMAT(#{startTime}, '%Y-%m-%d %H:%i:%s')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and create_date <= DATE_FORMAT(#{endTime}, '%Y-%m-%d %H:%i:%s')    ]]>
+		</if>  
+	     <if test="payType!=null and payType!=''">
+		    and pay_type  = ${payType}
+		</if>
+			<if test="tradeType!=null and tradeType!=''">
+		    and trade_type  = ${tradeType}
+		</if>
+
+	</select> 
+
+
+</mapper>

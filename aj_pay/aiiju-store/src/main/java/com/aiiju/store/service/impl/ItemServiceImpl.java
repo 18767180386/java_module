@@ -1,0 +1,240 @@
+package com.aiiju.store.service.impl;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.DateUtil;
+import com.aiiju.mapper.ItemMapper;
+import com.aiiju.pojo.Item;
+import com.aiiju.store.service.ItemService;
+
+/**
+ * 
+ * @ClassName: ItemServiceImpl
+ * @Description: 账目ServiceImpl
+ * @author 小飞
+ * @date 2017年3月22日 下午1:41:27
+ */
+@Service("itemService")
+public class ItemServiceImpl implements ItemService {
+
+    @Autowired
+    private ItemMapper itemMapper;
+
+    @Override
+    public Result save(Item item) {
+        // 添加账目
+  
+        item.setDate(item.getCreateDate());
+        this.itemMapper.add(item);
+//        if ("2".equals(item.getType().toString())) {// 支出类型
+//            ShopAccount account = this.shopAccountMapper.getById(item.getAccountId());
+//            BigDecimal budgetMoney = account.getSurplusMoney();
+//            //预算不为空
+//            if(budgetMoney!=null){
+//            	   BigDecimal temp = budgetMoney.subtract(item.getMoney());
+//                   account.setSurplusMoney(temp);
+//                   // 修改账本剩余预算金额
+//                   this.shopAccountMapper.update(account);
+//            }
+//          
+//           
+//        }
+        return Result.success(true);
+    }
+
+    @Override
+    public Result update(Item item) {
+    	
+    	item.setDate(item.getModifyDate());
+    	System.out.println(item.getModifyDate());
+//        Item dbItem = this.itemMapper.getById(item.getId());
+//        if (dbItem != null) {
+//            if ("2".equals(dbItem.getType().toString())) {// 支出类型
+//                ShopAccount account = this.shopAccountMapper.getById(dbItem.getAccountId());
+//              //  BigDecimal temp = account.getSurplusMoney().add(dbItem.getMoney()).subtract(item.getMoney());
+//              //  account.setSurplusMoney(temp);
+//                this.shopAccountMapper.update(account);
+//            }
+            this.itemMapper.update(item);
+//        }
+        return Result.success(true);
+    }
+
+    @Override
+    public Result deleteById(String operatorId, Long id) {
+        Item item = this.itemMapper.getById(id);
+        if (item != null) {
+            if (!item.getOperatorId().equals(operatorId)) {
+                return Result.build(401, "您无法删除他人创建的账目,请联系记录者本人处理");
+            }
+            this.itemMapper.deleteById(id);
+            // 如果删除的是支出账目，预算金额 加回去
+//            if ("2".equals(item.getType().toString())) {
+//                ShopAccount account = this.shopAccountMapper.getById(item.getAccountId());
+//                BigDecimal temp = account.getSurplusMoney();
+//                account.setSurplusMoney(temp.add(item.getMoney().abs()));
+//                this.shopAccountMapper.update(account);
+//            }
+        }
+        return Result.success(true);
+    }
+
+    @Override
+    public Result getById(Long id) {
+        Item item = this.itemMapper.getById(id);
+        return Result.success(item);
+    }
+
+    @Override
+    public Result getAllByAccountId(Long accountId, int currentNum, int pageSize) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("accountId", accountId);
+        if(currentNum<1){
+        	currentNum=1;
+        }
+        params.put("index", (currentNum - 1) * pageSize);
+        params.put("pageSize", pageSize);
+        List<Item> source = this.itemMapper.getPageByAccountId(params);
+        // 转换格式
+        List<Map<String, Object>> rt = this.parseData(source, accountId);
+
+        // 获取当月收入和支出
+        params.put("date", DateUtil.formatDate(new Date(), "yyyy-MM"));
+        List<Item> sumList = this.itemMapper.getItemSum(params);
+        //此处代码为了辅助前端代码判断
+        if (sumList.size() == 1) {
+          
+        	Item item = new Item();
+         
+        	item.setMoney(new BigDecimal("0.00"));
+            if ("1".equals(sumList.get(0).getType().toString())) {
+              
+            	item.setType(Byte.valueOf("2"));
+            } else if ("2".equals(sumList.get(0).getType().toString())) {
+               
+            	item.setType(Byte.valueOf("1"));
+            }
+            sumList.add(item);
+        }
+        // 封装返回值
+        Map<String, Object> rtMap = new HashMap<>();
+        rtMap.put("sum", sumList);
+        rtMap.put("list", rt);
+//        List<Item> sumlist = this.getDaySumByDate(accountId,date);
+//        return Result.build(200, "操作成功", rtMap, sumlist.toString());
+        return Result.success(rtMap);
+    }
+
+    @Override
+    public Result getPageByDate(Long accountId, String date, int currentNum, int pageSize) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("accountId", accountId);
+        params.put("date", date);
+        params.put("index", (currentNum - 1) * pageSize);
+        params.put("pageSize", pageSize);
+        List<Item> list = this.itemMapper.getPageByDate(params);
+        List<Item> sumlist = this.getDaySumByDate(accountId,date);
+    
+        Map<String, Object> rtMap = new HashMap<>();
+        if(sumlist.size()<1){
+        	sumlist=new ArrayList<Item>();// ios前端需要
+        }
+        if(list.size()<1){
+        	list=new ArrayList<Item>();	// ios前端需要
+        }
+        rtMap.put("sum", sumlist);
+        rtMap.put("list", list);
+        return Result.success(rtMap);
+        //return Result.build(200, "操作成功", list, JsonUtils.objectToJson(sumlist.toString()));
+    }
+
+    
+    private List<Item> getDaySumByDate(Long accountId,String date){
+    	   Map<String, Object> params = new HashMap<>();
+    	   params.put("accountId", accountId);
+		   params.put("date", date);
+    	  List<Item> sumList = this.itemMapper.getItemDaySum(params);
+          //此处代码为了辅助前端代码判断
+          if (sumList.size() == 1) {
+            
+          	Item item = new Item();
+           
+          	item.setMoney(new BigDecimal("0.00"));
+              if ("1".equals(sumList.get(0).getType().toString())) {
+                
+              	item.setType(Byte.valueOf("2"));
+              } else if ("2".equals(sumList.get(0).getType().toString())) {
+                 
+              	item.setType(Byte.valueOf("1"));
+              }
+              sumList.add(item);
+          }
+          
+          return sumList;
+    	
+    	
+    }
+    
+    
+    private List<Map<String, Object>> parseData(List<Item> source,Long accountId) {
+        List<Map<String, Object>> rt = new ArrayList<Map<String, Object>>();
+        if (source == null || source.size() == 0) {
+            return rt;
+        }
+        List<Item> list = this.itemMapper.getAllItemDaySum(accountId);
+        Map<String ,BigDecimal> map = new LinkedHashMap<String ,BigDecimal>();
+        
+        String income = "1";
+        String cost = "2";
+        for (Item item : list) {
+        	
+        	map.put(item.getRemark(), item.getMoney());
+		}     
+        // 日期分组
+        Map<String, List<Item>> dataMap = new LinkedHashMap<String, List<Item>>();
+        List<Item> temp = null;
+
+        for (Item item : source) {
+        	
+        	//System.out.println("---------------》时间："+item.getModifyDate());
+            String date = DateUtil.formatDate(item.getDate(), "yyyy-MM-dd");
+            if (dataMap.get(date) != null) {
+                dataMap.get(date).add(item);
+            } else {
+                temp = new ArrayList<Item>();
+                temp.add(item);
+                dataMap.put(date, temp);
+            }
+        }
+        
+        BigDecimal bignull = new BigDecimal("0.00");
+        // 转换格式
+        Map<String, Object> rtMap = null;
+        for (Map.Entry<String, List<Item>> entry : dataMap.entrySet()) {
+            rtMap = new LinkedHashMap<String, Object>();
+            rtMap.put("date", entry.getKey());
+            
+         //   System.out.println("--------------------->"+entry.getKey());
+            Map<String ,BigDecimal> map2 = new LinkedHashMap<String ,BigDecimal>();
+            BigDecimal dayincome = map.get(entry.getKey()+"_"+income);
+            BigDecimal daycost = map.get(entry.getKey()+"_"+cost);
+            map2.put("income", dayincome==null?bignull:dayincome);
+            map2.put("cost", daycost==null?bignull:daycost);
+            rtMap.put("daysum", map2);
+            rtMap.put("list", entry.getValue());
+            rt.add(rtMap);
+        }
+        return rt;
+    }
+}

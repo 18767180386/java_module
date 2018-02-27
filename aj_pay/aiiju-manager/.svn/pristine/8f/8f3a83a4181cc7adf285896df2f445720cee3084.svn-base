@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.ShopAccountMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.ShopAccount" useGeneratedKeys="true"  keyProperty="id">
+		insert into shop_account(name,store_id,is_default,status,color,budget_money,surplus_money,create_date,modify_date)
+		values(#{name},#{storeId},#{isDefault},#{status},#{color},#{budgetMoney},#{surplusMoney},#{createDate},#{modifyDate})
+	</insert>
+	
+	<update id="update" parameterType="com.aiiju.pojo.ShopAccount">
+		update shop_account 
+		<set>
+			<if test="name != null and name != '' ">
+				name = #{name},
+			</if>
+			<if test="isDefault != null and isDefault != '' ">
+				is_default = #{isDefault},
+			</if>
+			<if test="status != null and status != '' ">
+				status = #{status},
+			</if>
+			<if test="color != null and color != '' ">
+				color = #{color},
+			</if>
+			<if test="surplusMoney != null and surplusMoney !=''">
+				surplus_money = #{surplusMoney},
+			</if>
+		</set>
+		 where id = #{id}
+	</update>
+	
+	<update id="updateBudget" parameterType="com.aiiju.pojo.ShopAccount">
+		update shop_account set budget_money = #{budgetMoney},budget_type = #{budgetType},modify_date = #{modifyDate} where id = #{id}
+	</update>
+	
+	<update id="updateSurplus" parameterType="com.aiiju.pojo.ShopAccount">
+		update shop_account set surplus_money=#{surplusMoney}  where id = #{id}
+	</update>
+	
+	<update id="updateDefalutByShopId" parameterType="com.aiiju.pojo.ShopAccount">
+		update shop_account set is_default=2 where store_id = #{storeId}
+	</update>
+	
+	<update id="setDefalutById" parameterType="com.aiiju.pojo.ShopAccount">
+		update shop_account set is_default=1   where id = #{id}
+	</update>
+	
+	<select id="getById" parameterType="java.lang.Long" resultType="com.aiiju.pojo.ShopAccount">
+		select id,name,budget_type budgetType,budget_money budgetMoney,surplus_money surplusMoney,create_date createDate from shop_account where id = #{id}
+	</select>
+	
+	<select id="getShopAccountByName" parameterType="com.aiiju.pojo.ShopAccount" resultType="com.aiiju.pojo.ShopAccount">
+		select id,name from shop_account where name = #{name} and store_id = #{storeId}
+	</select>
+	
+	<select id="getAllByStoreId" parameterType="java.lang.String" resultType="com.aiiju.pojo.ShopAccount">
+		select 
+			id,name,store_id storeId,is_default isDefault,status,color,create_date createDate
+		 from shop_account where store_id = #{storeId}
+	</select>
+	
+	<select id="getShareAccounts" parameterType="java.lang.String" resultType="com.aiiju.pojo.ShopAccount">
+		select 
+			id,name,store_id storeId,is_default isDefault,status,color,create_date createDate
+		 from shop_account left join shop_account_user on id=shop_account_id where operator_id=#{operatorId}
+	</select>
+	
+	<delete id="deleteById" parameterType="java.lang.Long">
+		delete from shop_account where id = #{id}
+	</delete>
+	
+	<!-- 关联 员工 -->
+	<insert id="addLink" parameterType="com.aiiju.pojo.ShopAccountUserLink">
+		insert into
+		shop_account_user(shop_account_id,operator_id)
+		values(#{shopAccountId},#{operatorId})
+	</insert>
+	
+	<!-- 取消关联 员工 -->
+	<delete id="deleteLink" parameterType="com.aiiju.pojo.ShopAccountUserLink">
+		delete from shop_account_user where shop_account_id=#{shopAccountId} and operator_id=#{operatorId}
+	</delete>
+	
+	<delete id="deleteAllLink" parameterType="java.lang.Long">
+		delete from shop_account_user where shop_account_id=#{id}
+	</delete>
+
+	<select id="getIdByStoreIdAndIsDefault" parameterType="java.lang.String" resultType="com.aiiju.pojo.ShopAccount">
+		select id,name,store_id storeId,is_default isDefault,status,color from shop_account  where store_id = #{storeId} and is_default=1 
+	</select>
+
+</mapper>

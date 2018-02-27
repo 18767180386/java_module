@@ -1,0 +1,621 @@
+package com.aiiju.store.controller.rest;
+
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.printtemplate.EnChValidate;
+import com.aiiju.common.util.DateUtil;
+import com.aiiju.common.util.Print365Util;
+import com.aiiju.common.util.RandomUtil;
+import com.aiiju.mapper.DealDetailMapper;
+import com.aiiju.mapper.DealMapper;
+import com.aiiju.mapper.ShopMapper;
+import com.aiiju.mapper.UserLoginRecordMapper;
+import com.aiiju.pojo.Deal;
+import com.aiiju.pojo.DealDetail;
+import com.aiiju.pojo.Shop;
+import com.aiiju.pojo.User;
+import com.aiiju.pojo.UserLoginRecord;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.editor.DateEditor;
+import com.aiiju.store.service.PrintService;
+import com.aiiju.store.service.UserService;
+
+import cn.jpush.api.utils.StringUtils;
+import net.sf.json.JSONObject;
+
+/**
+ * 
+ * @ClassName: DealController
+ * @Description: 打印（交易）控制器
+ * @author zong
+ * @date 2017年5月5日 下午7:02:26
+ *
+ */
+@Controller
+@RequestMapping("/print")
+public class PrinterController {
+
+	private static Logger logger = Logger.getLogger(PrinterController.class);
+
+	@Autowired
+	private DealMapper dealMapper;
+
+	@Autowired
+	private ShopMapper shopMapper;
+
+	@Autowired
+	private DealDetailMapper dealDetailMapper;
+
+	@Autowired
+	private UserService userService;
+	
+	@Autowired
+	private PrintService printService;
+	
+	
+    @Autowired
+    private UserLoginRecordMapper userLoginRecordMapper;
+	
+	@InitBinder
+	public void initBinder(WebDataBinder binder){
+	     binder.registerCustomEditor(Date.class, new DateEditor("yyyy-MM-dd HH:mm:ss"));
+	}
+
+
+	@RequestMapping("/print")
+	@ResponseBody
+	public Result print(String serialNum,String storeId) {
+		try {
+
+			//首先查看该用户是否已添加打印设备；如果没有打印设备，则直接返回错误码；
+			Result queryPrinter = 	 printService.getPrinterByStoreId(storeId);
+			
+			Integer status = queryPrinter.getStatus();
+			
+			if(status!=200){
+				return Result.build(404, "很抱歉，未检测到您的小票机，暂时无法打印。请联系客服处理");
+			}
+
+			String currentstatus = Print365Util.queryPrinterStatus();
+			JSONObject jsonstatus = JSONObject.fromObject(currentstatus);
+
+			if (jsonstatus != null) {
+				if (jsonstatus.containsKey("responseCode") && jsonstatus.containsKey("msg")) {
+
+					Integer responseCode = (Integer) jsonstatus.get("responseCode");
+					String msg = (String) jsonstatus.get("msg");
+
+					if (responseCode == 0 && msg.contains("在线") && !msg.contains("不")) {
+
+						Deal deal = this.dealMapper.getDetailBySerialNum(serialNum);
+						Shop shop = this.shopMapper.getByStoreId(deal.getStoreId());
+						List<DealDetail> detailList = this.dealDetailMapper.getBySerialNum(serialNum);
+
+				
+						
+						/**
+						 * 如果打印，小票号不变
+						 */
+						if(deal!=null&&deal.getPrintSerial()!=null&&!"".equals(deal.getPrintSerial())){
+							
+						}else{
+							deal.setPrintSerial(RandomUtil.getPrintSerial());
+						}
+						
+						JSONObject json=	formatPrintContent(deal, detailList, shop);
+						Date printDateTime = new Date();
+						deal.setPrintDate(printDateTime);
+						deal.setPrintNum(json.getInt("No"));
+						deal.setPrintSendStatus("1");
+						String printContent = this.template(json, printDateTime);
+						String sr = Print365Util.addOrder(printContent);
+						if (sr.contains("服务器接收订单成功")) {
+
+							JSONObject orderJson = JSONObject.fromObject(sr);
+							String printOrder = (String) orderJson.get("orderindex");
+							deal.setPrintOrder(printOrder);
+							
+						}else{
+							
+							
+							return Result.build(401, "打印服务器接收订单失败", deal.getPrintSerial());
+							
+						}
+					
+						
+						this.dealMapper.updateprint(deal);
+						
+						return Result.build(200, msg,deal.getPrintSerial());
+
+					} else {
+						
+						String msgStr = "";
+						
+						if(msg.equals("离线")){
+							msgStr = "打印机设备目前处于离线状态，请检查您的打印设备";
+						}
+						if(msg.contains("不")){
+							msgStr = "检测到您的打印设备状态不正常，请检查您的打印设备（比如是否缺纸）";
+						}
+						
+						return Result.build(401, msgStr);
+					}
+
+				} else {
+					return Result.build(401, "打印服务器太累了,请稍后再试");
+				}
+
+			} else {
+				return Result.build(500, WebConstant.SYS_ERROR);
+			}
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500, WebConstant.SYS_ERROR);
+		}
+
+	}
+
+	@RequestMapping("/getprintcontent")
+	@ResponseBody
+	public Result getPrintContent(String serialNum) {
+
+		Deal deal = this.dealMapper.getDetailBySerialNum(serialNum);
+	
+		Shop shop = this.shopMapper.getByStoreId(deal.getStoreId());
+		List<DealDetail> detailList = this.dealDetailMapper.getBySerialNum(serialNum);
+		
+		/**
+		 * 如果打印，小票号不变
+		 */
+		if(deal!=null&&deal.getPrintSerial()!=null&&!"".equals(deal.getPrintSerial())){
+			
+		}else{
+			deal.setPrintSerial(RandomUtil.getPrintSerial());
+		}
+		JSONObject json=	formatPrintContent(deal, detailList, shop);
+		return Result.success(json);
+	}
+	
+	@RequestMapping("/updateprintstatus") // 仅pos打印更新完调用
+	@ResponseBody
+	public Result updatePrintStatus(Deal deal) {
+		deal.setPrintDate(new Date());
+		this.dealMapper.updateprint(deal);
+		return Result.success(true);
+	}
+	
+
+	
+	public JSONObject formatPrintContent(Deal deal,List<DealDetail> detailList,Shop shop){
+
+		JSONObject json = new JSONObject();
+		List<String> goodsNames = new ArrayList<String>(); // 品名
+		List<String> goodsCount = new ArrayList<String>();// 数量
+		List<String> goodsSums = new ArrayList<String>();// 小计
+
+		Integer totalcount =0;
+		BigDecimal totalsum = new BigDecimal(0.00); // ￥101111.99
+
+		for (DealDetail dealDetail : detailList) {
+			
+			goodsNames.add(dealDetail.getGoodsName());
+
+			BigDecimal buyNum = dealDetail.getNum(); // 购买数量
+			BigDecimal price = dealDetail.getPrice(); // 购买数量
+			String unit = dealDetail.getUnit();// 商品单位
+			// BigDecimal BugPrice = dealDetail.getPrice(); //单价
+			
+			if(unit.contains("件")){
+				
+				goodsCount.add(buyNum.intValue() + ""+dealDetail.getUnit());
+				totalcount +=buyNum.intValue();
+				
+			}else{
+				
+				if (unit.contains("500克")) {
+					String number = buyNum + "";
+					goodsCount.add(getNotEndZeroBigDecimal(number) + "克");
+				}else{
+					
+					goodsCount.add(getNotEndZeroBigDecimal(buyNum.toString())+ ""+dealDetail.getUnit());
+				}
+				totalcount += 1;
+			}
+			
+			if(dealDetail.getSum()==null){
+				
+				if (unit.contains("500克")) {
+					BigDecimal str = buyNum.multiply(price).divide(BigDecimal.valueOf(500));
+					dealDetail.setSum(str);
+				}else{
+					
+					BigDecimal str = buyNum.multiply(price);
+					dealDetail.setSum(str);
+				}
+				
+				
+			}
+			
+			
+			goodsSums.add(dealDetail.getSum() + "");
+			totalsum = totalsum.add(dealDetail.getSum());
+		}
+
+		Integer num = this.dealMapper.getCurrentPrintNumBySerialNum(deal);
+
+		if (num == null) {
+			num = 1;
+		} else {
+			num++;
+		}
+
+		json.put("detailList", detailList);// 找零
+
+		
+		json.put("No", num); // 票头第几单
+		json.put("shopName", shop.getShopName()); // 商铺名称
+		
+		json.put("printSerial", deal.getPrintSerial()); // 小票號
+		// json.put("date", printDateTime);
+		String user =deal.getOperatorId().substring(deal.getOperatorId().length() - 3);
+		json.put("operatorId", user);// 操作员号
+		json.put("serialNum", deal.getSerialNum());// 流水号
+		json.put("goodsNames", goodsNames);// 所有商品名称
+		json.put("goodsCount", goodsCount);// 与商品名称对应的数量
+		json.put("goodsSums", goodsSums.toString());// 与商品名称对应的小计
+		json.put("totalcount", totalcount);// 总件数
+		json.put("totalsum", totalsum.toString());// 总计金额
+		json.put("youhuiType", deal.getPrivType());// 优惠类型
+		json.put("youhuiSum", deal.getPrivPrice().toString());// 优惠金额
+		json.put("yingshouSum", deal.getShouldPrice().toString());// 应收金额
+		json.put("shijiSum", deal.getActualPrice().toString());// 实收金额
+		json.put("getChange", deal.getChangePrice().toString());// 找零
+		json.put("receTypeDes", deal.getReceTypeDesc()==null?" ":deal.getReceTypeDesc());// 支付类型
+		
+		
+		return json;
+		
+		
+	}
+	
+	
+	public static String template(JSONObject printContent, Date printDateTime) {
+		// 标签说明："<BR>"为换行符,"<CB></CB>"为居中放大,"<B></B>"为放大,"<C></C>"为居中,<L></L>字体变高
+		// "<QR></QR>"为二维码,"<CODE>"为条形码,后面接12个数字
+
+		// json.put("goodsNames", goodsNames);
+		// json.put("goodsCount", goodsCount);
+		// json.put("goodsSums", goodsSums);
+
+		List<String> goods = (List<String>) printContent.get("goodsNames");
+		List<String> count = (List<String>) printContent.get("goodsCount");
+		List<String> sum = (List<String>) printContent.get("goodsSums");
+		String printSerial =  (String) printContent.get("printSerial");
+
+		String hh = "\r\n";
+
+		StringBuffer mess = new StringBuffer("");
+
+		Integer mo = (Integer) printContent.get("No");
+
+		Integer har = EnChValidate.getBytesStrLength("NO." + mo + "小票");
+		Integer buBlank = (32 - har) / 2;
+		mess.append("<C>" + getSomeMark(buBlank, "=") + "NO." + mo + "小票" + getSomeMark(buBlank, "=") + "</C>\r\n");
+
+		mess.append("<CB>" + printContent.get("shopName") + "</CB>\r\n");
+
+		System.out.println(printDateTime);
+
+		String aa = DateUtil.formatDate(printDateTime, "yyyy.MM.dd");
+		System.out.println(aa);
+
+		mess.append("日期：" + DateUtil.formatDate(printDateTime, "yyyy-MM-dd") + " "
+				+ DateUtil.formatDate(printDateTime, "HH:mm") + " \r\n");
+
+		String user = printContent.get("operatorId").toString()
+				.substring(printContent.get("operatorId").toString().length() - 3);
+
+		mess.append("收银员:" + user + " \r\n");
+
+//		String serialNum = (String) printContent.get("serialNum");
+//
+//		if (serialNum.length() > 25) {
+//			mess.append("流水号:" + serialNum.substring(0, serialNum.length() - 5) + "\r\n");
+//
+//			mess.append("" + getBlank(7) + serialNum.substring(serialNum.length() - 5, serialNum.length()) + " \r\n");
+//		} else {
+//			mess.append("流水号:" + serialNum + "\r\n");
+//		}
+
+		// mess.append("--品名------------数量----小计--\r\n");
+		// mess.append( getSomeMark(32,"=")+"\r\n");
+		mess.append("品名=============数量=======小计\r\n");
+
+		for (int i = 0; i < goods.size(); i++) {
+
+			String a = goods.get(i) + getBlank(32 - EnChValidate.getBytesStrLength(goods.get(i)));
+			mess.append(a + hh);
+			String b = getBlank(21 - EnChValidate.getBytesStrLength(count.get(i))) + count.get(i)
+					+ getBlank(11 - EnChValidate.getBytesStrLength(sum.get(i))) + sum.get(i);
+			mess.append(b + hh);
+
+		}
+
+		String totalcount = (Integer) printContent.get("totalcount") + "";
+		BigDecimal totalsum = ((BigDecimal) printContent.get("totalsum"));
+
+		String youhuiType = (String) printContent.get("youhuiType");
+		BigDecimal youhuiSum = ((BigDecimal) printContent.get("youhuiSum"));
+		BigDecimal yingshouSum = ((BigDecimal) printContent.get("yingshouSum"));
+		BigDecimal shijiSum = ((BigDecimal) printContent.get("shijiSum"));
+		BigDecimal getChange = ((BigDecimal) printContent.get("getChange"));
+
+		mess.append(getSomeMark(32, "=") + "\r\n");
+
+		String totalsumStr = "￥" + totalsum + "";
+
+		mess.append("合计           共" + totalcount + "件" + getBlank( 32-20-totalcount.length()-totalsumStr.length())
+				+ totalsumStr + "\r\n");
+
+		mess.append("优惠类型" + getBlank(24 - EnChValidate.getChineseLength(youhuiType)) + youhuiType + "\r\n");
+
+		String youhuiSumStr = "-￥" + youhuiSum;
+
+		mess.append("优惠金额" + getBlank(24 - EnChValidate.getChineseLength(youhuiSumStr)) + youhuiSumStr + "\r\n");
+		// mess.append( getSomeMark(32,"-")+"\r\n");
+
+		String yingshouSumStr = "￥" + yingshouSum;
+
+		mess.append("应收金额" + getBlank(24 - EnChValidate.getChineseLength(yingshouSumStr)) + yingshouSumStr + "\r\n");
+
+		String shijiSumStr = "￥" + shijiSum;
+		mess.append("实收金额" + getBlank(24 - EnChValidate.getChineseLength(shijiSumStr)) + shijiSumStr + "\r\n");
+
+		String getChangeStr = "￥" + getChange;
+		mess.append("找零" + getBlank(28 - EnChValidate.getChineseLength(getChangeStr)) + getChangeStr + "\r\n");
+
+		mess.append(getSomeMark(32, "=") + "\r\n");
+		mess.append("<C>爱聚收银提供技术支持\r\n 小票号（用于售后）\r\n "+printSerial+"</C>\r\n");
+		// mess.append( "<C>爱聚收银提供技术支持</C>\r\n");
+
+		// mess.append( getSomeMark(32,"-")+"\r\n");
+		// mess.append( "<CODE>1234567890</CODE>\r\n"
+		// mess.append( "此二维码用于订单追溯\r\n");
+		mess.append("<QR>" + printSerial+ "</QR>\r\n");
+
+		return mess.toString();
+
+	}
+
+	public static String getBlank(int num) {
+
+		StringBuffer sb = new StringBuffer();
+		for (int j = 0; j < num; j++) {
+			sb.append(" ");
+		}
+		return sb.toString();
+	}
+
+	public static String getSomeMark(int num, String mark) {
+
+		StringBuffer sb = new StringBuffer();
+		for (int j = 0; j < num; j++) {
+			sb.append(mark);
+		}
+
+		return sb.toString();
+	}
+
+	public static String getNotEndZeroBigDecimal(String number) {
+
+		String returnString = number;
+
+		if (number.contains(".")) {
+
+			String[] num = number.split("\\.");
+
+			String realNum = num[1];
+
+			String returnnum = getNotEndWithZero(realNum);
+
+			if (StringUtils.isEmpty(returnnum)) {
+				returnString = num[0];
+			} else {
+				returnString = num[0] + "." + returnnum;
+			}
+
+		}
+
+		return returnString;
+	}
+
+	public static String getNotEndWithZero(String num) {
+
+		String returnString = num;
+
+		if (num.endsWith("0")) {
+
+			returnString = getNotEndWithZero(num.substring(0, num.length() - 1));
+		}
+
+		return returnString;
+	}
+
+	@RequestMapping("/queryPrinterStatus")
+	@ResponseBody
+	public Result queryPrinterStatus() {
+		try {
+
+			String sr = Print365Util.queryPrinterStatus();
+
+			int responseCode = JSONObject.fromObject(sr).getInt("responseCode");
+			String msg = JSONObject.fromObject(sr).getString("msg");
+
+			if (responseCode == 0 && !msg.contains("不") && !msg.contains("离线") && !msg.contains("错误")) {
+
+				return Result.build(200, msg);
+			} else {
+
+				return Result.build(401, msg);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return Result.build(500, WebConstant.SYS_ERROR);
+		}
+	}
+
+	@RequestMapping("/getOperatorIncomeInfo")
+	@ResponseBody
+	public Result getOperatorIncomeInfo(String phone,String operatorId,String equipmentCode){
+		
+		User user = userService.getUserByPhone(phone);
+		logger.info("打印phone=【"+phone+",operatorId="+operatorId+",设备号："+equipmentCode+"】上班时间的总收入");
+		
+		UserLoginRecord userLoginRecordPojo = new UserLoginRecord();
+		
+		userLoginRecordPojo.setEquipmentCode(equipmentCode);
+		userLoginRecordPojo.setPhone(phone);
+		UserLoginRecord userLoginRecord = userLoginRecordMapper.selectByEquipAndPhone(userLoginRecordPojo);
+		
+		Date startTime = userLoginRecord.getLoginTime();
+		Date endTime = new Date();
+		
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String start = sdf.format(startTime);
+		String end =  sdf.format(endTime);
+		// 总收入
+        
+		System.out.println("统计时间段："+start+"至"+end);
+		
+		Map<String,String> totalMap = new HashMap<String,String>();
+		totalMap.put("operatorId", operatorId);
+		totalMap.put("startTime", start);//2017-08-30 17:17:24
+		totalMap.put("endTime", end);//2017-08-30 17:30:45      2017-08-30 17:29:44
+		String total = dealMapper.getOnePersonTotalIncome(totalMap);
+		
+		if(total==null||"".equals(total)){
+			total="0.00";
+		}
+		
+		
+		//现金总收入：
+		
+		Map<String,String> cashMap = new HashMap<String,String>();
+		cashMap.put("operatorId", operatorId);
+		cashMap.put("startTime", sdf.format(startTime));
+		cashMap.put("endTime", sdf.format(endTime));
+		cashMap.put("payType", "0");
+		cashMap.put("tradeType", "1");
+		String cashtotal= this.dealMapper.getOnePersonTotalIncome(cashMap);
+		if(cashtotal==null||"".equals(cashtotal)){
+			cashtotal="0.00";
+		}
+	   //支付宝总收入：
+		
+		Map<String,String> zfbMap = new HashMap<String,String>();
+		zfbMap.put("operatorId", operatorId);
+		zfbMap.put("startTime", sdf.format(startTime));
+		zfbMap.put("endTime", sdf.format(endTime));
+		zfbMap.put("payType", "1");
+		zfbMap.put("tradeType", "1");
+		String zfbtotal= this.dealMapper.getOnePersonTotalIncome(zfbMap);
+		if(zfbtotal==null||"".equals(zfbtotal)){
+			zfbtotal="0.00";
+		}
+		//微信总收入：		
+		Map<String,String> wxMap = new HashMap<String,String>();
+		wxMap.put("operatorId", operatorId);
+		wxMap.put("startTime", sdf.format(startTime));
+		wxMap.put("endTime", sdf.format(endTime));
+		wxMap.put("payType", "2");
+		wxMap.put("tradeType", "1");
+		String wxtotal= this.dealMapper.getOnePersonTotalIncome(wxMap);
+		if(wxtotal==null||"".equals(wxtotal)){
+			wxtotal="0.00";
+		}
+		//银行总收入：		
+		Map<String,String> paMap1 = new HashMap<String,String>();
+		paMap1.put("operatorId", operatorId);
+		paMap1.put("startTime", sdf.format(startTime));
+		paMap1.put("endTime", sdf.format(endTime));
+		paMap1.put("payType", "4");
+		paMap1.put("tradeType", "1");
+		String patotal1= this.dealMapper.getOnePersonTotalIncome(paMap1);
+		if(patotal1==null||"".equals(patotal1)){
+			patotal1="0.00";
+		}
+		Map<String,String> paMap2 = new HashMap<String,String>();
+		paMap2.put("operatorId", operatorId);
+		paMap2.put("startTime", sdf.format(startTime));
+		paMap2.put("endTime", sdf.format(endTime));
+		paMap2.put("payType", "5");
+		paMap2.put("tradeType", "1");
+		String patotal2= this.dealMapper.getOnePersonTotalIncome(paMap2);
+		if(patotal2==null||"".equals(patotal2)){
+			patotal2="0.00";
+		}
+		
+		
+		String paTotal =(new BigDecimal(patotal1).add(new BigDecimal(patotal2))).toString();
+		if(paTotal==null||"".equals(paTotal)){
+			paTotal="0.00";
+		}
+        // 总退款
+		
+		Map<String,String> refundMap = new HashMap<String,String>();
+		refundMap.put("operatorId", operatorId);
+		refundMap.put("startTime", sdf.format(startTime));
+		refundMap.put("endTime", sdf.format(endTime));
+		refundMap.put("tradeType", "2");
+		String refundtotal= this.dealMapper.getOnePersonTotalIncome(refundMap);
+		if(refundtotal==null||"".equals(refundtotal)){
+			refundtotal="0.00";
+		}
+		
+		
+		//StringBuffer mess = new StringBuffer("");
+		
+		JSONObject json = new JSONObject();
+		
+		json.put("key1", "本次营业额："+total);
+		json.put("key2", "现金总收入："+cashtotal);
+		json.put("key3", "支付宝总收入："+zfbtotal);
+		json.put("key4", "微信总收入："+wxtotal);
+		json.put("key5", "银行渠道总收入："+paTotal);
+		json.put("key6", "退款总计："+ new BigDecimal(refundtotal).abs());
+		json.put("key7", "交班人("+user.getUserName()+")：");
+		json.put("key8", "接班人：");
+		
+		json.put("key9", "上线时间："+start);
+		json.put("key10", "接班时间："+end);
+
+		System.out.println(json.toString());
+        return Result.success(json);
+    
+		
+		
+		
+		
+		
+	}
+	
+	
+	
+}

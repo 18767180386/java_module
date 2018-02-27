@@ -1,0 +1,140 @@
+package com.aiiju.store.scheduler;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.aiiju.common.pojo.Result;
+import com.aiiju.common.util.DateUtil;
+import com.aiiju.common.util.JPushUtil;
+import com.aiiju.common.util.JsonUtils;
+import com.aiiju.pojo.BookingManage;
+import com.aiiju.store.constant.WebConstant;
+import com.aiiju.store.service.BookingManageService;
+
+/**
+ * @ClassName: SendMsgTask
+ * @Description: 预约提醒时间到了,给纹身师推送msg;开始时间到了给纹身师和客服推送msg
+ * @author 乔巴
+ * @date 2017年8月30日
+ */
+public class SendMsgTask_old {
+    
+	 private static Logger logger = Logger.getLogger(SendMsgTask_old.class);
+	
+    @Autowired
+	private BookingManageService bookingManageService;
+    
+    /**
+     * 预约订单管理推送
+     */
+    public Result sendMsgOnTime() throws ParseException {
+    	String bookingReminderMsg = "一个预约即将开始！";
+    	String msg = "一个预约已经开始!";
+    	
+    	logger.info("预约推送方法----------------");
+    	//当前时间
+    	DateTime dateTime = new DateTime();
+    	String str = dateTime.getYear() + "-" + dateTime.getMonthOfYear() + "-" + dateTime.getDayOfMonth() + " " + dateTime.getHourOfDay() + ":" +dateTime.getMinuteOfHour();
+        Date date = DateUtil.parseStr(str, "yyyy-MM-dd HH:mm");
+        //logger.info("=================="+date);
+        //获取所有的预约时间和提醒时间
+    	List<Map<String,String>> timeList = bookingManageService.getAllBeginAndReminderTime("");
+    	List<BookingManage> list1 = new ArrayList<BookingManage>();
+    	List<BookingManage> list2 = new ArrayList<BookingManage>();
+    	Date sendTime = null;
+    	Date beginTime = null;
+    	for (Map<String, String> map : timeList) {
+    		if(timeList!=null && timeList.size()>0){
+    			if(map!=null && !"".equals(map)){
+    				if(map.get("sendTime")!=null &&!"".equals(map.get("sendTime"))){
+    					sendTime = DateUtil.parseStr(map.get("sendTime"), "yyyy-MM-dd HH:mm");//预约提醒时间
+    					//1.预约提醒推送
+        				//如果预约提醒时间减去当前系统时间少于等于1分钟，就进行推送操作，将信息推送给纹身师
+        				if((int)(sendTime.getTime()-date.getTime())/(1000*60)<=1){
+        					//获取所有纹身师的设备号和机型
+        					List<Map<String, String>> equipmentCodeList =  bookingManageService.getDrawerEquipmentCode();
+        					//获取预约提醒推送订单的id
+        					Map<String, Object> ids = bookingManageService.getIdBySendTime(map.get("sendTime"));
+        					if(equipmentCodeList!=null && equipmentCodeList.size()>0){
+        						for (Map<String, String> map2 : equipmentCodeList) {
+        							if(map2!=null && !"".equals(map2)){
+        								if("androidT1".equals(map2.get("phoneType"))){
+                    						logger.info("===========预约提醒推送开始");
+                    						JPushUtil.sendMsgHD(Arrays.asList(map2.get("equipmentCode")),bookingReminderMsg,JsonUtils.objectToJson(Result.build(200, bookingReminderMsg,ids.get("id"), JPushUtil.ISBOOKING)));
+                    					}
+                    					else{
+                    						logger.info("===========预约提醒推送开始");
+                    						JPushUtil.sendMsg(Arrays.asList(map2.get("equipmentCode")),bookingReminderMsg,JsonUtils.objectToJson(Result.build(200, bookingReminderMsg,ids.get("id"),JPushUtil.ISBOOKING)));
+                    					}
+        								//根据预约提醒时间批量设置推送状态
+        			    				BookingManage booking = new  BookingManage();
+        								booking.setSendTime(sendTime);
+        								booking.setPushs("1");
+        								list1.add(booking);
+        								
+        							}else{
+        			    				return  Result.build(500, WebConstant.SYS_ERROR);
+        			    			}
+                				}
+        					}
+        					
+        				}
+    				}
+    				beginTime = DateUtil.parseStr(map.get("beginTime"), "yyyy-MM-dd HH:mm");//预约时间
+    				
+    				//2.开始推送
+    				//如果开始时间减去系统当前时间小于等于1分钟,就进行推送操作,将信息推送给纹身师和客服
+    				if((int)(beginTime.getTime()-date.getTime())/(1000*60)<1){
+    					//获取所有纹身师和客服的设备号和机型
+    					List<Map<String, String>> equipmentCodeList =  bookingManageService.getDrawerAndCustomerCode();
+    					 //获取预约开始推送订单的id
+    					Map<String, Object> ids = bookingManageService.getIdByBeginTime(map.get("beginTime"));
+    					if(equipmentCodeList!=null && equipmentCodeList.size()>0){
+    						for (Map<String, String> map2 : equipmentCodeList) {
+    							if(map2!=null &&!"".equals(map2)){
+    								if("androidT1".equals(map2.get("phoneType"))){
+                						logger.info("===========开始推送开始");
+                						JPushUtil.sendMsgHD(Arrays.asList(map2.get("equipmentCode")),msg,JsonUtils.objectToJson(Result.build(200, msg,ids.get("id"),JPushUtil.ISBOOKING)));
+                					}
+                					else{
+                						logger.info("===========开始推送开始");
+                						JPushUtil.sendMsg(Arrays.asList(map2.get("equipmentCode")),msg,JsonUtils.objectToJson(Result.build(200, msg,ids.get("id"),JPushUtil.ISBOOKING)));
+                					}
+    								//根据预约时间批量设置推送状态
+    			    				BookingManage booking = new  BookingManage();
+    			    				booking.setBeginTime(beginTime);
+    								booking.setPushs("1");
+    								list2.add(booking);
+    								
+    							}else{
+    			    				return  Result.build(500, WebConstant.SYS_ERROR);
+    			    			}
+            				}
+    					}
+    				}
+    				
+    			}else{
+    				return  Result.build(500, WebConstant.SYS_ERROR);
+    			}
+    		}
+    		//根据预约提醒时间批量设置推送状态
+        	int remindCountSend = bookingManageService.bacthSetByRemindTime(list1);
+        	//根据开始时间批量设置推送状态
+        	int beginCountSend = bookingManageService.bacthSetByBeginTime(list2);
+        	if(remindCountSend>0 || beginCountSend>0 ){
+        		return Result.success();
+        	}else{
+        		return  Result.build(500, WebConstant.SYS_ERROR);
+        	}
+		}
+    	return Result.success();
+    }
+}

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.InventoryMapper">
+
+	<sql id="selectSql">
+		id,name,store_id,create_date,modify_date,relation_goods_type_id
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.GoodsType" id="goodsTypeMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name" />
+		<result column="store_id" property="storeId" />
+		<result column="create_date" property="createDate" />
+		<result column="modify_date" property="modifyDate" />
+		<result column="relation_goods_type_id" property="relationGoodsTypeId" />
+	</resultMap>
+	
+	
+	
+	<select id="getAllByStoreId" parameterType="java.lang.String" resultMap="goodsTypeMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where store_id = #{storeId}
+	</select>
+	
+	<resultMap type="com.aiiju.pojo.GoodsType" id="goodsTypeAndGoodsMap" extends="goodsTypeMap">
+		<collection property="goodsList" column="id" select="com.aiiju.mapper.GoodsMapper.getByIdWithoutGoodsTypeId"></collection>
+	</resultMap>
+	
+	<select id="getAllWithGoodsByStoreId" parameterType="java.lang.String" resultMap="goodsTypeAndGoodsMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where store_id = #{storeId}
+	</select>
+
+
+	<select id="getAllWithGoodsByGoodsTypeId" parameterType="java.lang.String" resultMap="goodsTypeAndGoodsMap">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where id = #{goodsTypeId}
+	</select>
+
+	<resultMap type="com.aiiju.pojo.GoodsType" id="inventoryGoodsType">
+		<id column="id" property="id"/>
+		<result column="name" property="name" />
+		<result column="store_id" property="storeId" />
+        <collection property="goodsList" column="id" select="com.aiiju.mapper.InventoryMapper.getByIdWithoutGoodsTypeId"></collection>		
+	</resultMap>
+	
+
+   	<select id="findAllWithGoodsByStoreId" parameterType="java.lang.String" resultMap="inventoryGoodsType">
+		select 
+			<include refid="selectSql"></include>
+		 from goods_type where store_id = #{storeId}
+	</select>
+	
+	<resultMap type="com.aiiju.pojo.Goods" id="goodsMap">
+		<id column="id" property="id"/>
+		<result column="name" property="name" />
+		<result column="code" property="code" />
+		<result column="goods_type_id" property="goodsTypeId" />
+		<result column="goods_type_name" property="goodsTypeName" />
+		<result column="price" property="price" />
+		<result column="unit" property="unit" />
+		<result column="image_url" property="imageUrl" />
+		<result column="create_date" property="createDate" />
+		<result column="modify_date" property="modifyDate" />
+		<result column="store_id" property="storeId" />
+		<result column="relation_goods_id" property="relationGoodsId" />
+		<result column="inventory" property="inventory" />
+	</resultMap>
+	
+
+	<select id="getPageByGoodsTypeId" parameterType="java.util.Map" resultMap="goodsMap">
+		select 
+			id,name,code,goods_type_id as goodsTypeId,price,unit,image_url as imageUrl,create_date as createDate,
+			modify_date as modifyDate,store_id as storeId,relation_goods_id as relationGoodsId,ifnull(inventory,0) as inventory,
+			modify_inventory_date as modifyInventoryDate
+		 from goods where goods_type_id = #{goodsTypeId} limit #{index},#{pageSize}
+	</select>
+	
+		<select id="getByGoodsTypeId" parameterType="java.lang.Long" resultMap="goodsMap">
+		select 
+			id,name,code,goods_type_id as goodsTypeId,price,unit,image_url as imageUrl,create_date as createDate,
+			modify_date as modifyDate,store_id as storeId,relation_goods_id as relationGoodsId,ifnull(inventory,0) as inventory,
+			modify_inventory_date as modifyInventoryDate
+		 from goods where goods_type_id = #{goodsTypeId}
+	</select>
+	
+	
+	
+	
+	<select id="getByIdWithoutGoodsTypeId" parameterType="java.lang.String" resultMap="goodsMap">
+		select 
+			id,name,code,goods_type_id as goodsTypeId,price,unit,image_url as imageUrl,create_date as createDate,
+			modify_date as modifyDate,store_id as storeId,relation_goods_id as relationGoodsId,ifnull(inventory,0) as inventory,
+			modify_inventory_date as modifyInventoryDate
+		 from goods where goods_type_id = #{goodsTypeId}
+	</select>
+	
+   
+
+
+
+	 <select id="getAllGoodsXSSurplus" parameterType="java.util.Map" resultType="java.lang.String">
+		select sum(deal_detail.num)   as  surplus from deal_detail ,deal 
+        where deal_detail.goods_id =#{goodsId} 
+        and deal_detail.serial_num = deal.serial_num and deal.`status`=1 
+  	    <if test="modifyInventoryDate != null and modifyInventoryDate !=''">
+			and	deal_detail.create_date &gt; #{modifyInventoryDate}
+		</if>
+	
+	</select>
+
+
+	<select id="getYesterDayGoodsXSYesterday" parameterType="java.util.Map" resultType="java.lang.String">
+		select sum(deal_detail.num) as yesterdayNum from deal_detail ,deal 
+        where deal_detail.goods_id =#{goodsId} 
+        and deal_detail.serial_num = deal.serial_num and deal.`status`=1 
+          and TO_DAYS( NOW( ) ) - TO_DAYS(deal_detail.create_date)= 1
+    
+	</select>
+	
+
+ 
+	<select id="getAllGoodsXS" parameterType="java.lang.String" resultType="com.aiiju.pojo.DealDetail">
+		select sum(deal_detail.num) as num,deal_detail.goods_id as goodsId from deal_detail ,deal 
+        where (deal_detail.serial_num is not null and deal_detail.serial_num !='') 
+        and deal_detail.serial_num = deal.serial_num and deal.`status`=1 
+        and deal.store_id=#{storeId} and (deal_detail.goods_id is not null and deal_detail.goods_id !='') 
+         GROUP BY deal_detail.goods_id;
+	</select>
+	
+	<select id="getYesterDayGoodsXS" parameterType="java.lang.String" resultType="com.aiiju.pojo.DealDetail">
+		select sum(deal_detail.num) as num,deal_detail.goods_id as goodsId from deal_detail ,deal 
+        where (deal_detail.serial_num is not null and deal_detail.serial_num !='') 
+        and deal_detail.serial_num = deal.serial_num and deal.`status`=1 
+        and deal.store_id=#{storeId} and (deal_detail.goods_id is not null and deal_detail.goods_id !='') 
+        and TO_DAYS( NOW( ) ) - TO_DAYS(deal_detail.create_date)= 1 
+         GROUP BY deal_detail.goods_id;
+	</select>
+	
+	
+	
+	<update id="updateInventory" parameterType="com.aiiju.pojo.Goods">
+		update goods set inventory =#{inventory} ,modify_inventory_date =#{modifyInventoryDate}  where id = #{id}
+	</update>
+	
+
+	
+	<select id="getGoodsByStoreAndKeyword" parameterType="java.util.Map"  resultMap="goodsMap">
+		select 
+			g.id,g.name,g.code,g.goods_type_id as goodsTypeId,g.price,g.unit,g.image_url as imageUrl,g.create_date as createDate,
+			g.modify_date as modifyDate,g.store_id as storeId,g.relation_goods_id as relationGoodsId,ifnull(g.inventory,0) as inventory,
+			g.modify_inventory_date as modifyInventoryDate,t.name goods_type_name
+		 from goods g 
+		 left join goods_type t on g.goods_type_id ==t.id
+		 
+		  where g.store_id = #{storeId} 
+		 
+		  <if test="code == null or code ==''">
+		  
+			and	  g.name like concat(concat('%',#{name}),'%')
+		 </if>
+		 <if test="code != null and code !=''">
+			and ( g.name like concat(concat('%',#{name}),'%') or	g.code like concat(concat('%',#{code}),'%') )
+		 </if>
+		 
+	</select>
+
+
+
+</mapper>

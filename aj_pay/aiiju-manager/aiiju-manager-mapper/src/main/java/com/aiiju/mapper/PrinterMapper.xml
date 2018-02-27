@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.PrinterMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Printer" useGeneratedKeys="true"  keyProperty="id">
+		insert into printer(printer_name,printer_model_num,printer_password,printer_storeid,printer_link_status,printer_creator,remark,create_date,modify_date,status)
+		values(#{printerName},#{printerModelNum},#{printerPassword},#{printerStoreId},#{printerLinkStatus},#{printerCreator},#{remark},#{createDate},#{createDate},#{status})
+	</insert>
+	
+	
+	<update id="update" parameterType="com.aiiju.pojo.Printer">
+		update printer
+		<set>
+			<if test="printerName != null and printerName !=''">
+				printer_name = #{printerName},
+			</if>
+			<if test="printerModelNum != null and printerModelNum !=''">
+				printer_model_num = #{printerModelNum},
+			</if>
+			<if test="printerPassword != null and printerPassword !=''">
+				printer_password = #{printerPassword},
+			</if>
+			<if test="printerStoreId != null and printerStoreId !=''">
+				printer_storeid = #{printerStoreId},
+			</if>
+		   <if test="printerLinkStatus != null and printerLinkStatus !=''">
+				printer_link_status = #{printerLinkStatus},
+			</if>
+			<if test="printerCreator != null and printerCreator !=''">
+				printer_creator = #{printerCreator},
+			</if>
+			<if test="remark != null and remark !=''">
+				remark = #{remark},
+			</if>
+		
+			<if test="modifyDate != null and modifyDate !=''">
+				modify_date = #{modifyDate},
+			</if>
+			<if test="status != null and status !=''">
+				status = #{status},
+			</if>
+		</set>
+		where id = #{id}
+	</update>
+	
+	<delete id="deleteById" parameterType="java.lang.Long">
+		delete from printer where id = #{id}
+	</delete>
+	
+	
+	<sql id="selectSql">
+		id,printer_name,printer_model_num,printer_password,printer_storeid,printer_link_status,printer_creator,remark,create_date,modify_date,status
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.Printer" id="PrinterMap">
+		<id column="id" property="id"/>
+		<result column="printer_name" property="printerName" />
+		<result column="printer_model_num" property="printerModelNum" />
+		<result column="printer_password" property="printerPassword" />
+		<result column="printer_storeid" property="printerStoreId" />
+		<result column="printer_link_status" property="printerLinkStatus" />
+		<result column="printer_creator" property="printerCreator" />
+		<result column="remark" property="remark" />
+		<result column="create_date" property="createDate" />
+		<result column="modify_date" property="modifyDate" />
+		<result column="status" property="status" />
+	
+	</resultMap>
+	
+	<select id="getById" parameterType="java.lang.Long" resultMap="PrinterMap">
+		select
+			<include refid="selectSql"></include>
+		 from printer where id = #{id}
+	</select>
+
+
+	<select id="getPrinterByStoreId" parameterType="java.lang.String"  resultType="com.aiiju.pojo.Printer">
+	
+	   select
+			<include refid="selectSql"></include>
+		from printer  where printer_storeid = #{printerStoreId} and  status=1;
+		
+	</select>
+</mapper>

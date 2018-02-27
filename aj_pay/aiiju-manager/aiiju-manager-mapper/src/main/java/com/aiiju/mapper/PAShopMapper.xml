@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.aiiju.mapper.PAShopMapper" >
+  <resultMap id="BaseResultMap" type="com.aiiju.pojo.PAShop" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="parent_store_id" property="parentStoreId" jdbcType="VARCHAR" />
+    <result column="store_id" property="storeId" jdbcType="VARCHAR" />
+    <result column="mer_id" property="merId" jdbcType="VARCHAR" />
+    <result column="mct_no" property="mctNo" jdbcType="VARCHAR" />
+    <result column="tra_id" property="traId" jdbcType="VARCHAR" />
+    <result column="shop_name" property="shopName" jdbcType="VARCHAR" />
+    <result column="shop_full_name" property="shopFullName" jdbcType="VARCHAR" />
+    <result column="cityid" property="cityid" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="tel" property="tel" jdbcType="VARCHAR" />
+    <result column="open_hours" property="openHours" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="TIMESTAMP" />
+    <result column="modify_date" property="modifyDate" jdbcType="TIMESTAMP" />
+    <result column="errcode" property="errcode" jdbcType="INTEGER" />
+    <result column="errcode_msg" property="errcodeMsg" jdbcType="VARCHAR" />
+    <result column="step" property="step" jdbcType="VARCHAR" />
+    <result column="step_status" property="stepStatus" jdbcType="VARCHAR" />
+    <result column="lng" property="lng" jdbcType="VARCHAR" />
+    <result column="lat" property="lat" jdbcType="VARCHAR" />
+    <result column="pic1" property="pic1" jdbcType="VARCHAR" />
+    <result column="pic2" property="pic2" jdbcType="VARCHAR" />
+    <result column="pic3" property="pic3" jdbcType="VARCHAR" />
+    <result column="open_id" property="openId" jdbcType="VARCHAR" />
+    <result column="open_key" property="openKey" jdbcType="VARCHAR" />
+    
+    
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, parent_store_id, store_id, mer_id,mct_no, tra_id, shop_name, shop_full_name, cityid, 
+    address, tel, open_hours, create_date, modify_date, errcode, errcode_msg, step, step_status, 
+    lng, lat, pic1, pic2, pic3,open_id,open_key
+  </sql>
+  <select id="getPAShopList" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_mer_shop
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+    <select id="findPAShopByParStoreId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_mer_shop
+   where store_id = #{storeId} and parent_store_id = store_id
+  </select>
+  
+  <select id="findPAShopByStoreId" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from pa_mer_shop
+    where store_id = #{storeId}
+  </select>
+  
+  
+  
+    <select id="getPAShopByStoreId" resultType="java.lang.String" parameterType="java.lang.String" >
+    select shop_no
+    from pa_mer_shop
+    where store_id = #{storeId,jdbcType=INTEGER}
+  </select>
+  
+  
+  
+  
+  
+  <delete id="deletePAShopByIdFromDB" parameterType="java.lang.Integer" >
+    delete from pa_mer_shop
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  
+    <update id="updateFeedbackMsg" parameterType="com.aiiju.pojo.PAShop" >
+    update pa_mer_shop
+    <set >
+   
+      <if test="errcode != null" >
+        errcode = #{errcode},
+      </if>
+       <if test="errcodeMsg != null" >
+        errcode_msg = #{errcodeMsg},
+      </if>
+         <if test="step != null" >
+        step = #{step},
+      </if>
+         <if test="stepStatus != null" >
+        step_status = #{stepStatus},
+      </if>
+      <if test="openId != null" >
+        open_id = #{openId},
+      </if>
+       <if test="openKey != null" >
+        open_key = #{openKey},
+      </if>
+      </set>
+    where shop_no = #{shopNo}
+  </update>
+  
+  
+  <insert id="add" parameterType="com.aiiju.pojo.PAShop"  useGeneratedKeys="true"  keyProperty="id" >
+    insert into pa_mer_shop
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="parentStoreId != null" >
+        parent_store_id,
+      </if>
+      <if test="storeId != null" >
+        store_id,
+      </if>
+      <if test="mctNo != null" >
+        mct_no,
+      </if>
+       <if test="merId != null" >
+        mer_id,
+      </if>
+      <if test="traId != null" >
+        tra_id,
+      </if>
+      <if test="shopName != null" >
+        shop_name,
+      </if>
+      <if test="shopFullName != null" >
+        shop_full_name,
+      </if>
+      <if test="cityid != null" >
+        cityid,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="tel != null" >
+        tel,
+      </if>
+      <if test="openHours != null" >
+        open_hours,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+  
+      <if test="step != null" >
+        step,
+      </if>
+      <if test="stepStatus != null" >
+        step_status,
+      </if>
+      <if test="lng != null" >
+        lng,
+      </if>
+      <if test="lat != null" >
+        lat,
+      </if>
+      <if test="pic1 != null" >
+        pic1,
+      </if>
+      <if test="pic2 != null" >
+        pic2,
+      </if>
+      <if test="pic3 != null" >
+        pic3,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="parentStoreId != null" >
+        #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="storeId != null" >
+        #{storeId,jdbcType=VARCHAR},
+      </if>
+       <if test="mctNo != null" >
+       #{mctNo,jdbcType=VARCHAR},
+      </if>
+      <if test="merId != null" >
+        #{merId,jdbcType=VARCHAR},
+      </if>
+      <if test="traId != null" >
+        #{traId,jdbcType=VARCHAR},
+      </if>
+      <if test="shopName != null" >
+        #{shopName,jdbcType=VARCHAR},
+      </if>
+      <if test="shopFullName != null" >
+        #{shopFullName,jdbcType=VARCHAR},
+      </if>
+      <if test="cityid != null" >
+        #{cityid,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="openHours != null" >
+        #{openHours,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+ 
+      <if test="step != null" >
+        #{step,jdbcType=VARCHAR},
+      </if>
+      <if test="stepStatus != null" >
+        #{stepStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="lng != null" >
+        #{lng,jdbcType=VARCHAR},
+      </if>
+      <if test="lat != null" >
+        #{lat,jdbcType=VARCHAR},
+      </if>
+      <if test="pic1 != null" >
+        #{pic1,jdbcType=VARCHAR},
+      </if>
+      <if test="pic2 != null" >
+        #{pic2,jdbcType=VARCHAR},
+      </if>
+      <if test="pic3 != null" >
+        #{pic3,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="update" parameterType="com.aiiju.pojo.PAShop" >
+    update pa_mer_shop
+    <set >
+      <if test="parentStoreId != null" >
+        parent_store_id = #{parentStoreId,jdbcType=VARCHAR},
+      </if>
+      <if test="storeId != null" >
+        store_id = #{storeId,jdbcType=VARCHAR},
+      </if>
+      <if test="merId != null" >
+        mer_id = #{merId,jdbcType=VARCHAR},
+      </if>
+      <if test="traId != null" >
+        tra_id = #{traId,jdbcType=VARCHAR},
+      </if>
+      <if test="shopName != null" >
+        shop_name = #{shopName,jdbcType=VARCHAR},
+      </if>
+      <if test="shopFullName != null" >
+        shop_full_name = #{shopFullName,jdbcType=VARCHAR},
+      </if>
+      <if test="cityid != null" >
+        cityid = #{cityid,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="tel != null" >
+        tel = #{tel,jdbcType=VARCHAR},
+      </if>
+      <if test="openHours != null" >
+        open_hours = #{openHours,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyDate != null" >
+        modify_date = #{modifyDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="errcode != null" >
+        errcode = #{errcode,jdbcType=INTEGER},
+      </if>
+      <if test="errcodeMsg != null" >
+        errcode_msg = #{errcodeMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="step != null" >
+        step = #{step,jdbcType=VARCHAR},
+      </if>
+      <if test="stepStatus != null" >
+        step_status = #{stepStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="lng != null" >
+        lng = #{lng,jdbcType=VARCHAR},
+      </if>
+      <if test="lat != null" >
+        lat = #{lat,jdbcType=VARCHAR},
+      </if>
+      <if test="pic1 != null" >
+        pic1 = #{pic1,jdbcType=VARCHAR},
+      </if>
+      <if test="pic2 != null" >
+        pic2 = #{pic2,jdbcType=VARCHAR},
+      </if>
+      <if test="pic3 != null" >
+        pic3 = #{pic3,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where store_id = #{storeId,jdbcType=INTEGER}
+  </update>
+ 
+</mapper>

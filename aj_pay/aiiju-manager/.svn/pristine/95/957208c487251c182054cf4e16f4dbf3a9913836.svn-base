@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.BookingManageMapper">
+	<resultMap id="bookingManageMap" type="com.aiiju.pojo.BookingManage">
+		<id column="id" jdbcType="BIGINT" property="id"/>
+    	<result column="create_user_id" jdbcType="INTEGER" property="createUserId"/>
+    	<result column="store_id" jdbcType="VARCHAR" property="storeId" />
+    	<result column="parent_store_id" jdbcType="VARCHAR" property="parentStoreId" />
+    	<result column="operator_id" jdbcType="VARCHAR" property="operator_id"/>
+    	<result column="booking_status" jdbcType="VARCHAR" property="bookingStatus" />
+    	<result column="customer_name" jdbcType="VARCHAR" property="customerName" />
+    	<result column="customer_sex" jdbcType="VARCHAR" property="customerSex" />
+    	<result column="contact_way" jdbcType="VARCHAR" property="contactWay" />
+    	<result column="paid_deposit" jdbcType="DECIMAL" property="paid" />
+    	<result column="not_pay" jdbcType="DECIMAL" property="unpay" />
+    	<result column="one_total" jdbcType="DECIMAL" property="oneTotal" />
+    	<result column="drawer" jdbcType="VARCHAR" property="drawer" />
+    	<result column="phone" jdbcType="VARCHAR" property="phone" />
+    	<result column="remark" jdbcType="VARCHAR" property="remark" />
+    	<result column="begin_time" jdbcType="TIMESTAMP" property="beginTime" />
+    	<result column="end_time" jdbcType="TIMESTAMP" property="endTime" />
+    	<result column="send_time" jdbcType="TIMESTAMP" property="sendTime" />
+    	<result column="pushs" jdbcType="VARCHAR" property="pushs" />
+    	<result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    	<result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+	</resultMap>
+	
+	<sql id="Base_Column_List">
+		id,create_user_id,store_id,parent_store_id,operator_id,booking_status,customer_name,customer_sex,contact_way,paid_deposit,not_pay,one_total,drawer,phone,remark,begin_time,end_time,send_time,pushs,update_time,create_time
+	</sql>
+	
+	<!--获取预约管理列表S-->
+	<select id="getBoookingManageList" resultType="hashmap">
+		SELECT
+			sum(b.one_total) total,
+			b.customer_name customerName,
+			b.contact_way contactWay,
+			b.paid_deposit paid,
+			b.not_pay unpay,
+			b.begin_time beginTime,
+			b.drawer drawer,
+			LEFT(b.begin_time,10) createTime,
+			b.id,
+			b.customer_sex customerSex,
+			b.remark,
+			b.booking_status bookingStatus,
+			b.end_time endTime,
+			b.pushs	pushs,
+			b.phone phone
+		FROM
+			booking_manage b
+		WHERE
+			1=1 
+			<if test="status != null and status !=''">
+				AND b.booking_status=#{status,jdbcType=VARCHAR}
+			</if>
+			<if test="storeId != null and storeId !=''">
+				AND b.store_id=#{storeId,jdbcType=VARCHAR}
+			</if>
+			<if test="startDate != null and startDate !=''">
+				AND b.begin_time  &gt;= #{startDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test="endDate != null and endDate !=''">
+				AND b.begin_time  &lt;=#{endDate,jdbcType=INTEGER}
+			</if>
+			<if test="phone != null and phone !=''">
+				AND b.phone=#{phone,jdbcType=VARCHAR}
+			</if>
+			<if test="drawer != null and drawer !=''">
+				AND b.drawer=#{drawer,jdbcType=VARCHAR}
+			</if>
+			<if test="keyWord != null and keyWord !=''">
+				AND (b.customer_name like '%${keyWord}%' OR b.contact_way like '%${keyWord}%' OR b.remark like '%${keyWord}%')
+			</if>
+		GROUP BY
+			b.begin_time
+		UNION ALL
+		SELECT
+				sum(b.one_total) total,
+				'' customerName,
+				'' contactWay,
+				'0.00' paid,
+				'0.00' unpay,
+				'',
+				'' drawer,
+				LEFT (b.begin_time, 10) createTime,
+				'' id,
+				'' customerSex,
+				'' remark,
+				'' bookingStatus,
+				'' endTime,
+				'' pushs,
+				'' phone
+		FROM
+			booking_manage b
+		WHERE
+			1=1
+			<if test="status != null and status !=''">
+				AND b.booking_status=#{status,jdbcType=VARCHAR}
+			</if>
+			<if test="storeId != null and storeId !=''">
+				AND b.store_id=#{storeId,jdbcType=VARCHAR}
+			</if>
+			<if test="startDate != null and startDate !=''">
+				AND b.begin_time  &gt;= #{startDate,jdbcType=TIMESTAMP}
+			</if>
+			<if test="endDate != null and endDate !=''">
+				AND b.begin_time  &lt;=#{endDate,jdbcType=INTEGER}
+			</if>
+			<if test="phone != null and phone !=''">
+				AND b.phone=#{phone,jdbcType=VARCHAR}
+			</if>
+			<if test="drawer != null and drawer !=''">
+				AND b.drawer=#{drawer,jdbcType=VARCHAR}
+			</if>
+			<if test="keyWord != null and keyWord !=''">
+				AND (b.customer_name like '%${keyWord}%' OR b.contact_way like '%${keyWord}%' OR b.remark like '%${keyWord}%')
+			</if>
+		GROUP BY
+			LEFT (b.begin_time, 10)
+		ORDER BY
+			total DESC,beginTime DESC
+	</select>
+	<!--获取预约管理列表E-->
+	<!--获取预约管理列表总记录数S -->
+	<select id="getCount" resultType="java.util.Map">
+	SELECT
+		count(phone) recordCount
+	FROM
+		booking_manage b
+	WHERE
+		1=1 
+		<if test="status != null and status !=''">
+			AND b.booking_status=#{status,jdbcType=VARCHAR}
+		</if>
+		<if test="storeId != null and storeId !=''">
+			AND b.store_id=#{storeId,jdbcType=VARCHAR}
+		</if>
+		<if test="startDate != null and startDate !=''">
+			AND b.begin_time  &gt;= #{startDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="endDate != null and endDate !=''">
+			AND b.begin_time  &lt;=#{endDate,jdbcType=INTEGER}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND b.phone=#{phone,jdbcType=VARCHAR}
+		</if>
+		<if test="drawer != null and drawer !=''">
+				AND b.drawer=#{drawer,jdbcType=VARCHAR}
+			</if>
+		<if test="keyWord != null and keyWord !=''">
+			AND (b.customer_name like '%${keyWord}%' OR b.contact_way like '%${keyWord}%' OR b.remark like '%${keyWord}%')
+		</if>
+			GROUP BY
+		LEFT (b.begin_time, 10)
+	</select>
+	<!--获取预约管理列表总记录数E-->
+	
+	<!--获取总计金额S-->
+	<select id="getTotalAmount" resultType="java.util.Map">
+		SELECT
+			sum(b.one_total) totalAmount
+		FROM
+			booking_manage b
+		WHERE
+ 			1=1 
+		<if test="status != null and status !=''">
+			AND b.booking_status = #{status,jdbcType=VARCHAR}
+		</if>
+		<if test="storeId != null and storeId !=''">
+			AND b.store_id=#{storeId,jdbcType=VARCHAR}
+		</if>
+		<if test="startDate != null and startDate !=''">
+			AND b.begin_time  &gt;= #{startDate,jdbcType=TIMESTAMP}
+		</if>
+		<if test="endDate != null and endDate !=''">
+			AND b.begin_time  &lt;=#{endDate,jdbcType=INTEGER}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND b.phone=#{phone,jdbcType=VARCHAR}
+		</if>
+		<if test="drawer != null and drawer !=''">
+				AND b.drawer=#{drawer,jdbcType=VARCHAR}
+		</if>
+		<if test="keyWord != null and keyWord !=''">
+			AND (b.customer_name like '%${keyWord}%' OR b.contact_way like '%${keyWord}%' OR b.remark like '%${keyWord}%')
+		</if>
+	</select>
+	<!--获取总计金额E-->
+	
+	<!--创建预约单S-->
+	<insert id="createOrder" parameterType="com.aiiju.pojo.BookingManage">
+		insert into 
+			booking_manage
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="createUserId != null and createUserId !=''">
+				create_user_id,
+			</if>
+			<if test="storeId != null and storeId !=''">
+				store_id,
+			</if>
+			<if test="parentStoreId != null and parentStoreId !=''">
+				parent_store_id,
+			</if>
+			<if test="operatorId != null and operatorId !=''">
+				operator_id,
+			</if>
+			<if test="bookingStatus != null and bookingStatus !=''">
+				booking_status,
+			</if>
+			<if test="customerName != null and customerName !=''">
+				customer_name,
+			</if>
+			<if test="customerSex != null and customerSex !=''">
+				customer_sex,
+			</if>
+			<if test="contactWay != null and contactWay !=''">
+				contact_way,
+			</if>
+			<if test="paid != null and paid !=''">
+				paid_deposit,
+			</if>
+			<if test="unpay != null and unpay !=''">
+				not_pay,
+			</if>
+			<if test="oneTotal != null and oneTotal !=''">
+				one_total,
+			</if>
+			<if test="drawer != null and drawer !=''">
+				drawer,
+			</if>
+			<if test="phone != null and phone !=''">
+				phone,
+			</if>
+			<if test="remark != null and remark !=''">
+				remark,
+			</if>
+			<if test="beginTime != null and beginTime !=''">
+				begin_time,
+			</if>
+			<if test="endTime != null and endTime !=''">
+				end_time,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=BIGINT},
+			</if>
+			<if test="createUserId != null and createUserId !=''">
+				#{createUserId,jdbcType=INTEGER},
+			</if>
+			<if test="storeId != null and storeId !=''">
+				#{storeId,jdbcType=VARCHAR},
+			</if>
+			<if test="parentStoreId != null and parentStoreId !=''">
+				#{parentStoreId,jdbcType=VARCHAR},
+			</if>
+			<if test="operatorId != null and operatorId !=''">
+				#{operatorId,jdbcType=VARCHAR},
+			</if>
+			<if test="bookingStatus != null and bookingStatus !=''">
+				#{bookingStatus,jdbcType=VARCHAR},
+			</if>
+			<if test="customerName != null and customerName !=''">
+				#{customerName,jdbcType=VARCHAR},
+			</if>
+			<if test="customerSex != null and customerSex !=''">
+				#{customerSex,jdbcType=VARCHAR},
+			</if>
+			<if test="contactWay != null and contactWay !=''">
+				#{contactWay,jdbcType=VARCHAR},
+			</if>
+			<if test="paid != null and paid !=''">
+				#{paid,jdbcType=DECIMAL},
+			</if>
+			<if test="unpay != null and unpay !=''">
+				#{unpay,jdbcType=DECIMAL},
+			</if>
+			<if test="oneTotal != null and oneTotal !=''">
+				#{oneTotal,jdbcType=DECIMAL},
+			</if>
+			<if test="drawer != null and drawer !=''">
+				#{drawer,jdbcType=VARCHAR},
+			</if>
+			<if test="phone != null and phone !=''">
+				#{phone,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null and remark !=''">
+				#{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="beginTime != null and beginTime !=''">
+				#{beginTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="endTime != null and endTime !=''">
+				#{endTime,jdbcType=TIMESTAMP},
+			</if>
+		</trim>
+	</insert>
+	<!--创建预约单E-->
+	<!--查询用户姓名S-->
+	<select id="getUserName" resultType="java.util.Map">
+		SELECT
+			u.user_name username
+		FROM
+			user u
+		WHERE
+			u.is_delete = '0'
+		<if test="phone != null and phone !=''">
+			AND u.phone = #{phone,jdbcType=VARCHAR}
+		</if> 
+	</select>
+	<!--查询用户姓名E-->
+	<!--编辑预约单S-->
+	<update id="updateById" parameterType="com.aiiju.pojo.BookingManage">
+		update booking_manage 
+		<set>
+			<if test="createUserId != null and createUserId !=''">
+				create_user_id = #{createUserId,jdbcType=INTEGER},
+			</if>
+			<if test="storeId != null and storeId !=''">
+				store_id = #{storeId,jdbcType=VARCHAR},
+			</if>
+			<if test="parentStoreId != null and parentStoreId !=''">
+				parent_store_id = #{parentStoreId,jdbcType=VARCHAR},
+			</if>
+			<if test="bookingStatus != null and bookingStatus !=''">
+				booking_status = #{bookingStatus,jdbcType=VARCHAR},
+			</if>
+			<if test="customerName != null and customerName !=''">
+				customer_name = #{customerName,jdbcType=VARCHAR},
+			</if>
+			<if test="customerSex != null and customerSex !=''">
+				customer_sex = #{customerSex,jdbcType=VARCHAR},
+			</if>
+			<if test="contactWay != null and contactWay !=''">
+				contact_way = #{contactWay,jdbcType=VARCHAR},
+			</if>
+			<if test="paid != null and paid !=''">
+				paid_deposit = #{paid,jdbcType=DECIMAL},
+			</if>
+			<if test="unpay != null and unpay !=''">
+				not_pay = #{unpay,jdbcType=DECIMAL},
+			</if>
+			<if test="oneTotal != null and oneTotal !=''">
+				one_total = #{oneTotal,jdbcType=DECIMAL},
+			</if>
+			<if test="drawer != null and drawer !=''">
+				drawer = #{drawer,jdbcType=VARCHAR},
+			</if>
+			<if test="phone != null and phone !=''">
+				phone = #{phone,jdbcType=VARCHAR},
+			</if>
+			<if test="remark != null and remark !=''">
+				remark = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="beginTime != null and beginTime !=''">
+				begin_time = #{beginTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="endTime != null and endTime !=''">
+				end_time = #{endTime,jdbcType=TIMESTAMP},
+			</if>
+			send_status=0,
+			pushs=0
+		</set>
+		where id = #{id,jdbcType=BIGINT}
+	</update>
+	<!--编辑预约单E-->
+	
+	<!--根据id查看预约单详情S-->
+	<select id="getBookingManageById" parameterType="java.lang.Long" resultMap="bookingManageMap">
+		SELECT b.id,b.create_user_id createUserId,b.store_id storeId,b.parent_store_id parentStoreId,b.operator_id operatorId,b.booking_status bookingStatus,b.customer_name customerName,b.customer_sex customerSex,b.contact_way contactWay,b.paid_deposit paid,b.not_pay unpay,b.one_total oneTotal,b.drawer,b.phone,b.remark,b.begin_time beginTime,b.end_time endTime,b.pushs,b.update_time updateTime,b.create_time createTime,b.send_time sendTime FROM booking_manage b WHERE id = #{id}
+	</select>
+	<!--根据id查看预约单详情E-->
+	
+	<!--根据id删除预约单S-->
+    <delete id="deleteById" parameterType="java.lang.Long">
+       DELETE FROM booking_manage where id = #{id}
+    </delete>
+	<!--根据id删除预约单E-->
+	<!--获取每个店铺每个纹身师所有的预约单开始和结束时间S-->
+	<select id="getRecentTime" resultType="com.aiiju.pojo.BookingManage">
+		SELECT
+		    b.id,
+			b.begin_time beginTime,
+			b.end_time endTime
+		FROM
+			booking_manage b
+		WHERE
+			1=1
+		<if test="storeId != null and storeId !=''">
+			AND b.store_id = #{storeId,jdbcType=VARCHAR}
+		</if>
+		<if test="phone != null and phone !=''">
+			AND b.phone = #{phone,jdbcType=VARCHAR}
+		</if>
+		<if test="id != null and id !=''">
+			AND b.id != #{id,jdbcType=BIGINT}
+		</if>
+	</select>	
+	<!--获取每个店铺每个纹身师所有的预约单开始和结束时间S-->
+	<!--批量添加预约提醒时间S-->
+	<update id="bacthAddRemindTime" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update booking_manage b
+			set b.send_time =#{item.sendTime}
+			where b.begin_time = #{item.beginTime}
+		</foreach>
+	</update>
+	<!--批量添加预约提醒时间E-->
+	<!--获取所有纹身师的设备号和机型S-->
+	<select id="getDrawerEquipmentCode" resultType="java.util.Map">
+		SELECT 
+			DISTINCT j.equipment_code equipmentCode,
+			j.phone_type phoneType,
+			b.phone
+		FROM
+			jpush j
+		LEFT JOIN booking_manage b ON b.phone = j.phone	
+		AND b.store_id = j.store_id
+		WHERE
+			b.booking_status = '0'
+		AND b.pushs = '0'
+	</select>	
+	<!--获取所有纹身师的设备号和机型E-->
+	<!--获取所有纹身师和客服的设备号和机型S-->
+	<select id="getDrawerAndCustomerCode" resultType="java.util.Map">
+		SELECT 
+			DISTINCT j.equipment_code equipmentCode,
+			j.phone_type phoneType,
+			u.phone
+		FROM
+			jpush j
+		LEFT JOIN user u ON u.operator_id = j.operator_id
+		AND u.phone = j.phone
+		AND u.store_id = j.store_id
+		WHERE
+			u.is_delete = '0' AND u.role = '3'
+	</select>	
+	<!--获取所有纹身师和客服的设备号和机型E-->
+	<!--获取所有的预约时间和预约提醒时间S-->
+	<select id="getAllBeginAndReminderTime" resultType="java.util.Map">
+		SELECT
+			DATE_FORMAT(b.begin_time,'%Y-%m-%d %H:%i') beginTime,
+			DATE_FORMAT(b.send_time,'%Y-%m-%d %H:%i') sendTime
+		FROM
+			booking_manage b
+		WHERE
+			b.booking_status = '0'
+		<if test="storeId != null and storeId !=''">
+			AND b.store_id = #{storeId,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!--获取所有的预约时间和预约提醒时间E-->
+	<!--根据预约提醒时间批量设置推送状态S-->
+	<update id="bacthSetByRemindTime" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update booking_manage b
+			set b.pushs =#{item.pushs}
+			where b.send_time = #{item.sendTime}
+		</foreach>
+	</update>
+	<!--根据预约提醒时间批量设置推送状态E-->
+	<!--根据开始时间批量设置推送状态S-->
+	<update id="bacthSetByBeginTime" parameterType="java.util.List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";">
+			update booking_manage b
+			set b.pushs =#{item.pushs}
+			where b.begin_time = #{item.beginTime}
+		</foreach>
+	</update>
+	<!--根据开始时间批量设置推送状态E-->
+	<!--获取预约提醒推送订单的idS-->
+	<select id="getIdBySendTime" resultType="java.util.Map">
+		SELECT
+			b.id id
+		FROM
+			booking_manage b
+		WHERE
+			1=1
+		<if test="sendTime != null and sendTime !=''">
+			AND b.send_time  = #{sendTime,jdbcType=TIMESTAMP}
+		</if>
+	</select>
+	<!--获取预约提醒推送订单的idE-->
+	<!--获取预约开始推送订单的idS-->
+	<select id="getIdByBeginTime" resultType="java.util.Map">
+		SELECT
+			b.id id
+		FROM
+			booking_manage b
+		WHERE
+			1=1
+		<if test="beginTime != null and beginTime !=''">
+			AND b.begin_time  = #{beginTime,jdbcType=TIMESTAMP}
+		</if>
+	</select>	
+	<!--获取预约开始推送订单的idE-->
+	<!--获取所有的用户角色S-->
+	 <select id="getAllRole" resultType="java.util.Map">
+		SELECT u.role FROM  user u WHERE 
+		<if test="userId != null and userId !=''">
+			u.id = #{userId,jdbcType=INTEGER}
+		</if> 
+	</select>
+	<!--获取所有的用户角色S-->
+	
+	<!--新-->
+	 <select id="findAllBookingManage" resultType="com.aiiju.pojo.BookingManage">
+		SELECT
+		    id,
+		    phone,
+		    store_id storeId,
+		    send_status   sendStatus,
+			begin_time beginTime,
+			send_time sendTime
+		FROM
+			booking_manage 
+		WHERE
+			pushs = '0' and booking_status=0
+	</select>
+	
+	 <update id="updatePushsStatusById" parameterType="java.lang.Long">
+        update booking_manage set pushs = '1' where id = #{id}
+    </update>
+	
+	
+	<update id="updateSendStatusById" parameterType="java.lang.Long">
+        update booking_manage set send_status = '1' where id = #{id}
+    </update>
+	
+	
+	<select id="getJPushListByPhone"  parameterType="java.lang.String" resultType="com.aiiju.pojo.JPush">
+		SELECT
+		    id,
+		    phone_type phoneType,
+		    equipment_code equipmentCode
+		FROM
+			jpush 
+		WHERE
+			status=1 and phone = #{phone} group by equipment_code
+			
+	</select>
+	
+	<select id="getCustomerFromUserByStoreId"  parameterType="java.lang.String" resultType="com.aiiju.pojo.User">
+		SELECT
+		    id,
+		    phone
+		FROM
+			user 
+		WHERE
+			is_delete=0 and role=3 and store_id = #{storeId}
+			
+	</select>
+	
+	<select id="getBookingManageSwitchByStoreId"  parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT
+		    remind_status
+		FROM
+			booking_manage_switch 
+		WHERE
+			 store_id = #{storeId}
+			
+	</select>
+	
+	<insert id="saveBookingManageSwitch" parameterType="com.aiiju.pojo.BookingManageSwitch">
+		insert into booking_manage_switch(parent_store_id,store_id,remind_status,remind_time,create_time) values (#{parentStoreId},#{storeId},#{remindStatus},#{remindTime},#{createTime})
+	</insert>		
+
+	<update id="updateBookingManageSwitch" parameterType="com.aiiju.pojo.BookingManageSwitch">
+        update booking_manage_switch set remind_status = #{remindStatus} ,remind_time = #{remindTime}, update_time= #{updateTime}  where  store_id = #{storeId}
+    </update>
+	
+	<select id="getList" resultType="java.util.Map">	
+		select
+			id,create_user_id createUserId,store_id storeId,parent_store_id parentStoreId,operator_id operatorId,
+			booking_status bookingStatus,customer_name customerName,customer_sex customerSex,contact_way contactWay,paid_deposit paid
+			,not_pay unpay,one_total oneTotal ,drawer,phone,remark,begin_time beginTime,end_time endTime,send_time sendTime,pushs,update_time updateTime,create_time createTime
+        from booking_manage
+		where  store_id  = #{storeId}
+
+	    <if test="bookingStatus!=null and bookingStatus!=''">
+		    and  booking_status  = #{bookingStatus} 
+		</if>  
+		<if test="phone!=null and phone!=''">
+		    and    phone =#{phone} 
+		</if>  
+		<if test="drawer!=null and drawer!=''">
+		    and    drawer like concat(concat('%',#{drawer}),'%') 
+		</if>  
+	    <if test="keyWord!=null and keyWord!=''">
+		    and  (customer_name like concat(concat('%',#{keyWord}),'%') or  phone like concat(concat('%',#{keyWord}),'%')  or remark like concat(concat('%',#{keyWord}),'%')  )
+		</if>  	
+		<if test="beginTime!=null and beginTime!=''">
+		    <![CDATA[   and begin_time>=  DATE_FORMAT(#{beginTime}, '%Y-%m-%d %H:%i')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and end_time <= DATE_FORMAT(#{endTime}, '%Y-%m-%d %H:%i')    ]]>
+		</if>  
+        order by begin_time desc limit #{index},#{pageSize}
+	</select> 
+	
+	
+	 <select id="getTotalAmountNew" resultType="java.lang.String">	
+		select
+	    sum(one_total) total
+        from booking_manage
+		where  store_id  = #{storeId}
+
+	    <if test="bookingStatus!=null and bookingStatus!=''">
+		    and  booking_status  = #{bookingStatus} 
+		</if>  
+			<if test="phone!=null and phone!=''">
+		    and    phone =#{phone} 
+		</if>  
+		<if test="drawer!=null and drawer!=''">
+		    and    drawer like concat(concat('%',#{drawer}),'%') 
+		</if>  
+
+	    <if test="keyWord!=null and keyWord!=''">
+		    and  (customer_name like concat(concat('%',#{keyWord}),'%') or  phone like concat(concat('%',#{keyWord}),'%')  or remark like concat(concat('%',#{keyWord}),'%')  )
+		</if>  	
+		<if test="beginTime!=null and beginTime!=''">
+		    <![CDATA[   and begin_time>=  DATE_FORMAT(#{beginTime}, '%Y-%m-%d %H:%i')   ]]>
+		</if>
+		<if test="endTime!=null and endTime!=''">
+		    <![CDATA[  and end_time <= DATE_FORMAT(#{endTime}, '%Y-%m-%d %H:%i')    ]]>
+		</if>  
+
+	</select> 
+	
+	 <select id="getDayTotal" resultType="java.lang.String">	
+		select
+	    sum(one_total) total
+        from booking_manage
+		where  store_id  = #{storeId}
+
+	    <if test="bookingStatus!=null and bookingStatus!=''">
+		    and  booking_status  = #{bookingStatus} 
+		</if>  
+			<if test="phone!=null and phone!=''">
+		    and    phone =#{phone} 
+		</if>  
+		<if test="drawer!=null and drawer!=''">
+		    and    drawer like concat(concat('%',#{drawer}),'%') 
+		</if>  
+	    <if test="keyWord!=null and keyWord!=''">
+		    and  (customer_name like concat(concat('%',#{keyWord}),'%') or  phone like concat(concat('%',#{keyWord}),'%')  or remark like concat(concat('%',#{keyWord}),'%')  )
+		</if>  	
+		<if test="dateTime!=null and dateTime!=''">
+		    <![CDATA[   and DATE_FORMAT(begin_time, '%Y-%m-%d') =  DATE_FORMAT(#{dateTime}, '%Y-%m-%d')   ]]>
+		</if>
+	</select> 
+	
+	 <select id="getUserByPhone" resultType="com.aiiju.pojo.User">	
+	
+	    select id,phone,store_id storeId,role from user where is_delete=0 and phone =#{phone}
+	 </select> 
+	
+	
+	
+</mapper>

@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aiiju.mapper.ShopMapper">
+
+	<insert id="add" parameterType="com.aiiju.pojo.Shop" useGeneratedKeys="true"  keyProperty="id">
+		insert into shop(shop_name,store_id,is_discount,alipay,wx,parent_store_id,create_date,province_code,
+		city_code,district_code,code_name,address_detail,longitude,latitude,contact_number,shop_type,is_reputation_shop,reputation_shop_id,modify_relation_goods,delete_relation_goods,manage_own_goods) 
+		values(#{shopName},#{storeId},#{isDiscount},#{alipay},#{wx},#{parentStoreId},#{createDate},#{provinceCode},#{cityCode},#{districtCode}
+		,#{codeName},#{addressDetail},#{longitude},#{latitude},#{contactNumber}
+		,#{shopType},#{isReputationShop},#{reputationShopId},#{modifyRelationGoods},#{deleteRelationGoods},#{manageOwnGoods})
+	</insert>
+	
+
+	<update id="update" parameterType="com.aiiju.pojo.Shop">
+		update shop p 
+		<set>
+			<if test="shopType != null">
+				p.shop_type = #{shopType},
+			</if>
+			<if test="shopName != null">
+				p.shop_name = #{shopName},
+			</if>
+			<if test="provinceCode != null">
+				p.province_code = #{provinceCode},
+			</if>
+		
+			<if test="longitude != null">
+				p.longitude = #{longitude},
+			</if>
+			<if test="latitude != null">
+				p.latitude = #{latitude},
+			</if>
+			<if test="districtCode != null">
+				p.district_code = #{districtCode},
+			</if>
+			<if test="contactNumber != null">
+				p.contact_number = #{contactNumber},
+			</if>
+			<if test="codeName != null">
+				p.code_name = #{codeName},
+			</if>
+			<if test="cityCode != null">
+				p.city_code = #{cityCode},
+			</if>
+			<if test="addressDetail != null">
+				p.address_detail = #{addressDetail},
+			</if>
+			<if test="imageUrl != null">
+				p.image_url = #{imageUrl},
+			</if>
+	
+			<if test="isDiscount != null">
+				p.is_discount = #{isDiscount},
+			</if>
+			<if test="alipay != null">
+				p.alipay = #{alipay},
+			</if>
+			<if test="wx != null">
+				p.wx = #{wx},
+			</if>
+			<if test="modifyDate != null">
+				p.modify_date = #{modifyDate},
+			</if>
+		</set>
+		where p.id = #{id}
+	</update>
+	
+	<update id="updatePayAuth" parameterType="com.aiiju.pojo.Shop">
+		update shop p 
+		<set>
+			<if test="alipay != null">
+				p.alipay = #{alipay},
+			</if>
+			<if test="wx != null">
+				p.wx = #{wx},
+			</if>
+			<if test="modifyDate != null">
+				p.modify_date = #{modifyDate},
+			</if>
+		</set>
+		where p.id = #{id}
+	</update>
+		<update id="updateByStoreIdNew" parameterType="com.aiiju.pojo.Shop">
+		update shop p 
+		<set>
+			<if test="imageUrl != null">
+				p.image_url = #{imageUrl},
+			</if>
+		    <if test="parentStoreId != null">
+				p.parent_store_id = #{parentStoreId},
+			</if>
+			<if test="shopName != null">
+				p.shop_name = #{shopName},
+			</if>
+			<if test="provinceCode != null">
+				p.province_code = #{provinceCode},
+			</if>
+			<if test="cityCode != null">
+				p.city_code = #{cityCode},
+			</if>
+			<if test="districtCode != null">
+				p.district_code = #{districtCode},
+			</if>
+			<if test="codeName != null">
+				p.code_name = #{codeName},
+			</if>
+			<if test="addressDetail != null">
+				p.address_detail = #{addressDetail},
+			</if>
+			<if test="longitude != null">
+				p.longitude = #{longitude},
+			</if>
+			<if test="latitude != null">
+				p.latitude = #{latitude},
+			</if>
+			<if test="contactNumber != null">
+				p.contact_number = #{contactNumber},
+			</if>
+			<if test="addressDetail != null">
+				p.address_detail = #{addressDetail},
+			</if>
+			<if test="isDiscount != null">
+				p.is_discount = #{isDiscount},
+			</if>
+			<if test="alipay != null">
+				p.alipay = #{alipay},
+			</if>
+			<if test="wx != null">
+				p.wx = #{wx},
+			</if>
+			<if test="modifyDate != null">
+				p.modify_date = #{modifyDate},
+			</if>
+		</set>
+		where p.store_id = #{storeId}
+	</update>
+	
+	
+	
+	<update id="updateShopGoodsAuth" parameterType="com.aiiju.pojo.Shop">
+		update shop p 
+		<set>
+			<if test="modifyRelationGoods != null">
+				p.modify_relation_goods = #{modifyRelationGoods},
+			</if>
+		   <if test="deleteRelationGoods != null">
+				p.delete_relation_goods = #{deleteRelationGoods},
+			</if>
+			<if test="manageOwnGoods != null">
+				p.manage_own_goods = #{manageOwnGoods},
+			</if>
+			<if test="modifyDate != null">
+				p.modify_date = #{modifyDate},
+			</if>
+		</set>
+		where p.store_id = #{storeId}
+	</update>
+	
+	
+		<update id="updateByStoreId" parameterType="com.aiiju.pojo.Shop">
+		update shop p 
+		<set>
+			<if test="isDiscount != null">
+				p.is_discount = #{isDiscount},
+			</if>
+		</set>
+		where p.store_id = #{storeId}
+	</update>
+	
+	<sql id="selectSql">
+		id,shop_name,image_url,store_id,is_discount,alipay,wx,create_date,modify_date,parent_store_id
+		,create_date,province_code,
+		city_code,district_code,code_name,address_detail,longitude,latitude,contact_number,shop_type,is_reputation_shop,reputation_shop_id,modify_relation_goods,
+		delete_relation_goods,manage_own_goods,is_open_synchronize
+	</sql>
+	
+	<resultMap type="com.aiiju.pojo.Shop" id="shopMap">
+		<id column="id" property="id"/>
+		<result column="shop_name" property="shopName" />
+		<result column="image_url" property="imageUrl" />
+		<result column="store_id" property="storeId" />
+		<result column="is_discount" property="isDiscount" />
+		<result column="alipay" property="alipay" />
+		<result column="wx" property="wx" />
+		<result column="create_date" property="createDate" />
+		<result column="modify_date" property="modifyDate" />
+		<result column="parent_store_id" property="parentStoreId" />
+		<result column="province_code" property="provinceCode" />
+		<result column="city_code" property="cityCode" />
+		<result column="district_code" property="districtCode" />
+		<result column="code_name" property="codeName" />
+		<result column="address_detail" property="addressDetail" />
+		<result column="longitude" property="longitude" />
+		<result column="latitude" property="latitude" />
+		<result column="contact_number" property="contactNumber" />
+		<result column="shop_type" property="shopType" />
+		<result column="is_reputation_shop" property="isReputationShop" />
+		<result column="reputation_shop_id" property="reputationShopId" />
+		
+		<result column="modify_relation_goods" property="modifyRelationGoods" />
+		<result column="delete_relation_goods" property="deleteRelationGoods" />
+		<result column="manage_own_goods" property="manageOwnGoods" />
+		<result column="is_open_synchronize" property="isOpenSynchronize" />
+		
+
+	</resultMap>
+	
+	 <select id="getShopByParentStoreIdAndName" parameterType="java.util.Map" resultMap="shopMap">
+	 
+		select <include refid="selectSql"></include>
+		
+		 from shop where 1=1
+		
+		<if test="parentStoreId!=null and parentStoreId!=''">
+		   and parent_store_id = #{parentStoreId}
+		</if>
+		<if test="storeId!=null and storeId!=''">
+		  and  store_id = #{storeId}
+		</if>
+		<if test="shopName!=null and shopName!=''">
+		 and  shop_name = #{shopName}
+		</if>
+	
+	</select>
+	
+	 <select id="isExist" parameterType="com.aiiju.pojo.Shop" resultMap="shopMap">
+	 
+		select <include refid="selectSql"></include>
+		
+		 from shop where 1=1 and id!=#{id}
+		
+		<if test="parentStoreId!=null and parentStoreId!=''">
+		   and parent_store_id = #{parentStoreId}
+		</if>
+		<if test="shopName!=null and shopName!=''">
+		 and  shop_name = #{shopName}
+		</if>
+	
+	</select>
+	
+	
+	<select id="getById" parameterType="java.lang.Integer" resultMap="shopMap">
+		select 
+			<include refid="selectSql"></include>
+		 from shop where id = #{id}
+	</select>
+	
+	<select id="getByStoreId" parameterType="java.lang.String" resultMap="shopshopAccountMap">
+		select 
+			<include refid="selectSql"></include>
+		 from shop where store_id = #{storeId}
+	</select>
+		
+	
+	<select id="getShopListByStoreId" parameterType="java.lang.String" resultMap="shopMap">
+	
+	   select ss.*,rs.review_status as reviewStatus,rs.sub_msg as subMsg,rs.result_desc as resultDesc 
+		from( SELECT s.id,s.shop_name as shopName,s.store_id as storeId,s.image_url as imageUrl,s.shop_type as shopType,s.is_reputation_shop as isReputationShop from shop s where s.store_id = #{storeId}) ss
+	    left join reputation_shopinfo rs on ss.storeId = rs.store_id
+
+	</select>	
+		
+	 <select id="getShopListByParentStoreId" parameterType="java.lang.String" resultMap="shopMap">
+		   select ss.*,rs.review_status as reviewStatus,rs.sub_msg as subMsg,rs.result_desc as resultDesc 
+		from( SELECT s.id,s.shop_name as shopName,s.store_id as storeId,s.image_url as imageUrl,s.shop_type as shopType,s.is_reputation_shop as isReputationShop from shop s where s.parent_store_id = #{storeId}) ss
+	    left join reputation_shopinfo rs on ss.storeId = rs.store_id order by ss.id asc
+
+	</select>
+		
+	 <select id="getSwitchListByParentStoreId" parameterType="java.lang.String" resultMap="shopshopAccountMap">
+		 select ss.*,rs.review_status as reviewStatus,rs.sub_msg as subMsg,rs.result_desc as resultDesc 
+		from( SELECT s.id,s.shop_name as shopName,s.store_id as storeId,s.image_url as imageUrl,s.shop_type as shopType,s.is_reputation_shop as isReputationShop,s.is_open_synchronize AS isOpenSynchronize from shop s where s.parent_store_id = #{storeId}  and s.shop_type!=2) ss
+	    left join reputation_shopinfo rs on ss.storeId = rs.store_id order by ss.id asc
+	</select>
+		
+		
+	<resultMap type="com.aiiju.pojo.Shop" id="shopshopAccountMap" extends="shopMap">
+		<association property="shopAccount" column="store_id" select="com.aiiju.mapper.ShopAccountMapper.getIdByStoreIdAndIsDefault"></association>
+		<association property="mPoints" column="store_id" select="com.aiiju.mapper.MPointsMapper.getByStoreId"></association>
+	</resultMap>
+	
+	
+	
+	<select id="getShopNameById" parameterType="java.lang.Integer" resultType="java.lang.String">
+		select shop_name from shop where id = #{id}
+	</select>
+	
+	<select id="getShopNameByStoreId" parameterType="java.lang.String" resultType="java.lang.String">
+		select shop_name from shop where store_id = #{storeId}
+	</select>
+	
+	<delete id="deleteById" parameterType="java.lang.Integer">
+		delete from shop where id = #{id}
+	</delete>
+	
+	<select id="getDiscountStatusByStoreId" parameterType="java.lang.String" resultType="net.sf.json.JSONObject">
+		select is_discount from shop where store_id = #{storeId}
+	</select>
+	
+	<update id="updateSynchronize" parameterType="com.aiiju.pojo.Shop">
+		update shop p 
+		<set>
+			<if test="isOpenSynchronize != null">
+				p.is_open_synchronize = #{isOpenSynchronize},
+			</if>
+		</set>
+		where p.id = #{id}
+	</update>
+	
+	 <select id="getSynchronizeStatue" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT
+			store_id
+		FROM
+			shop
+		WHERE
+			store_id = #{storeId}
+		AND is_open_synchronize = 1
+		
+	</select>
+	
+	<select id="getshopByStoreId" parameterType="java.lang.String" resultMap="shopMap">
+		select 
+			<include refid="selectSql"></include>
+		 from shop where store_id = #{storeId}
+	</select>
+	
+	<select id="getParentStoreIdSet"  resultType="java.lang.String">
+		SELECT
+			parent_store_id
+		FROM
+			shop
+		WHERE
+			store_id in 
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">  
+		      #{item}  
+		 </foreach>
+		AND shop_type IN (0, 1)
+	</select>	
+	
+	<update id="savaGrantStatus" >
+		UPDATE shop
+		SET relative_erp = 1
+		WHERE
+			store_id IN 
+		<foreach item="item" index="index" collection="ids" open="(" separator="," close=")">  
+		      #{item}  
+		 </foreach>
+	</update>
+	
+	<update id="cancelErpGrant" parameterType="java.lang.String"  >
+		UPDATE shop
+		SET relative_erp = 0
+		WHERE
+			parent_store_id = #{pstoreId}
+	</update>
+
+	<select id="getShopRelativeErpStatus" parameterType="java.lang.String" resultType="java.lang.String">
+		SELECT
+			relative_erp
+		FROM
+			shop
+		WHERE
+			store_id = #{storeId};
+	</select>
+	
+
+</mapper>
