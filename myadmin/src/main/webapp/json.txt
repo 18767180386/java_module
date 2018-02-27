@@ -1,0 +1,25 @@
+JSONObject jsonObj = JSON.parseObject(jsonStr);
+
+
+Model model = JSON.parseObject(jsonStr, Model.class);
+
+Type type = new TypeReference<List<Model>>() {}.getType();
+List<Model> list = JSON.parseObject(jsonStr, type);
+
+
+Model model = ...;
+String jsonStr = JSON.toJSONString(model);
+
+
+Model model = ...;
+byte[] jsonBytes = JSON.toJSONBytes(model);
+
+
+Model model = ...;
+OutputStream os;
+JSON.writeJSONString(os, model);
+
+
+Model model = ...;
+Writer writer = ...;
+JSON.writeJSONString(writer, model);

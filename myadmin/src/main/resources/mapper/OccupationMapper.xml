@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.dao.OccupationDao">
+    <insert id="addOccupation" parameterType="OccupationInfo" useGeneratedKeys="true" keyProperty="id">
+        <!--insert into admin_user(user_name,user_phone,create_time,score,user_password,pic,sex,user_email) values(#{userName},#{userPhone},#{createTime},#{score},#{userPassword},#{pic},#{sex},#{userEmail})-->
+        <!--
+        INSERT INTO user_info (user_name,user_password)
+        SELECT #{userName},#{userPhone},#{createTime},#{score},#{userPassword},#{pic},#{sex},#{userEmail},#{status}
+        FROM DUAL
+        WHERE NOT EXISTS (SELECT * FROM user_info WHERE user_name =#{userName});
+
+        -->
+        INSERT INTO occupation_info (user_id,title,author,content,commentnum,createtime,msg_type) values (#{userId},#{title},#{author},#{content},#{commentnum},#{createtime},#{msgType})
+    </insert>
+
+
+    <insert id="addOccupationPic" parameterType="List">
+        insert occupation_pic_info (occupation_id,thumbnail_url,pic_url,addtime) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.occupationId},#{item.thumbnailUrl},#{item.picUrl},#{item.addtime})
+        </foreach>
+    </insert>
+
+
+
+    <select id="getOccupationList"  resultMap="ClassResultMap3">
+        <!---
+        select a.id,a.user_id,a.title,a.author,a.content,a.commentnum,a.createtime,b.thumbnail_url,b.pic_url from  occupation_info a,occupation_pic_info b
+
+        <where>
+            a.id=b.occupation_id
+
+            <if test=" type!=null and type!=0">
+                and  a.msg_type=#{type}
+            </if>
+
+            <if test="keyword!=null and keyword!=''">
+                and  a.title LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>
+        ORDER BY a.id desc  limit #{offset},#{limit}
+
+        -->
+
+        <!--
+        select a.id,a.user_id,a.title,a.author,a.content,a.commentnum,a.createtime,b.thumbnail_url,b.pic_url,b.picid from  occupation_info a
+        left  join occupation_pic_info b on  a.id=b.occupation_id
+
+        <where>
+
+            <if test=" type!=null and type!=0">
+                and  a.msg_type=#{type}
+            </if>
+
+            <if test="keyword!=null and keyword!=''">
+                and  a.title LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>
+
+        ORDER BY a.id desc  limit #{offset},#{limit}
+
+        -->
+
+        SELECT id,user_id,title,author,content,commentnum,createtime FROM occupation_info
+        <where>
+
+            <if test=" type!=null and type!=0">
+                and  msg_type=#{type}
+            </if>
+
+            <if test="keyword!=null and keyword!=''">
+                and  title LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>
+
+        ORDER BY id desc  limit #{offset},#{limit}
+
+
+        <!--
+        <where>
+            <if test="author!=null and author!='' ">
+                and author like #{author}
+            </if>
+            <if test="title!=null and title!='' ">
+
+            <if test="isbn!=null and isbn!='' ">
+                and isbn = #{isbn}
+            </if>
+        </where>
+        -->
+
+
+    </select>
+
+
+    <resultMap type="OccupationInfo" id="ClassResultMap3">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="commentnum" column="commentnum"/>
+        <result property="createtime" column="createtime"/>
+        <result property="content" column="content"/>
+        <!--
+       <association property="teacher" column="teacher_id" javaType="me.gacl.domain.Teacher">
+           <id property="id" column="t_id"/>
+          <result property="name" column="t_name"/>
+      </association>
+      -->
+        <!-- ofType指定students集合中的对象类型 -->
+        <collection property="occupationPicInfos" column="id" javaType="ArrayList"
+                    ofType="OccupationPicInfo" select="getPicList"/>
+
+        <!--
+        <collection property="occupationPicInfos" ofType="OccupationPicInfo" >
+            <id property="picid" column="picid"/>
+            <result  property="thumbnailUrl" column="thumbnail_url"/>
+            <result property="picUrl" column="pic_url"/>
+        </collection>
+        -->
+    </resultMap>
+
+    <select id="getPicList" resultMap="getPicMap">
+        SELECT *  FROM  occupation_pic_info  WHERE occupation_id=#{id}
+    </select>
+
+
+    <resultMap id="getPicMap" type="OccupationPicInfo">
+        <id property="picid" column="picid"/>
+        <result  property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="picUrl" column="pic_url"/>
+    </resultMap>
+
+
+
+    <select id="getOccupationTypeList" resultType="OccupationTypeInfo" >
+        SELECT *  FROM occupation_type_info
+    </select>
+
+    <insert id="addOccupationType" parameterType="OccupationTypeInfo">
+        INSERT INTO occupation_type_info (sort_type,sort_name,sort_desc) values (#{sortType},#{sortName},#{sortDesc})
+    </insert>
+
+
+    <insert id="addOccupationComment" parameterType="OccupationCommentInfo" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO occupation_comment (comment_content,comment_uid,comment_num,comment_time,praise_num,occupation_id) values (#{commentContent},#{commentUid},#{commentNum},#{commentTime},#{praiseNum},#{occupation_id})
+    </insert>
+
+
+    <insert id="addOccupationReply" parameterType="OccupationReplyInfo" useGeneratedKeys="true" keyProperty="replyId">
+        INSERT INTO occupation_reply (reply_content,reply_uid,reply_time,reply_num,reply_to_uid,com_id) values (#{replyContent},#{replyUid},#{replyTime},#{replyNum},#{replyToUid},#{com_id})
+    </insert>
+
+
+
+    <select id="getOccupationCommentList"  resultMap="CommentMap" >
+      SELECT  a.comment_id,a.comment_content,a.comment_time,b.reply_id,b.reply_content,b.reply_uid,b.reply_time,b.com_id,b.reply_to_uid,u.user_id,u.user_name,u.nick_name,u.user_img from  occupation_comment a left JOIN occupation_reply b on a.comment_id=b.com_id
+        LEFT  JOIN user_info u on a.comment_uid=u.user_id  where a.occupation_id=#{occ_id}
+        <if test="sorttype==0">
+            ORDER BY a.comment_id DESC
+        </if>
+
+        <if test="sorttype==1">
+            ORDER BY a.comment_id ASC
+        </if>
+        limit #{offset},#{limit}
+    </select>
+
+
+    <resultMap type="OccupationCommentInfo" id="CommentMap">
+        <id property="commentId" column="comment_id"/>
+        <result property="commentContent" column="comment_content"/>
+        <result property="commentTime" column="comment_time"/>
+       <association property="userInfo" column="comment_uid" javaType="UserInfo">
+           <id property="userId" column="user_id"/>
+           <result property="userName" column="user_name"/>
+           <result property="nickName" column="nick_name"/>
+           <result property="userImg" column="user_img"/>
+      </association>
+        <!-- ofType指定students集合中的对象类型 -->
+        <collection property="replyInfoList" ofType="OccupationReplyInfo"  >
+            <id property="replyId" column="reply_id"/>
+            <result  property="replyContent" column="reply_content"/>
+            <result property="replyUid" column="reply_uid"/>
+            <result property="replyTime" column="reply_time"/>
+            <result property="replyToUid" column="reply_to_uid"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="getCommentList"  resultMap="CommentListMap">
+
+        <!--
+        SELECT  a.comment_id,a.comment_content,a.comment_time,b.reply_id,b.reply_content,b.reply_uid,b.reply_time,b.com_id,b.reply_to_uid,u.user_id,u.user_name,u.nick_name,u.user_img from  occupation_comment a left JOIN occupation_reply b on a.comment_id=b.com_id
+        LEFT  JOIN user_info u on a.comment_uid=u.user_id  where a.occupation_id=#{occ_id}
+        <if test="sorttype==0">
+            ORDER BY a.comment_id DESC
+        </if>
+
+        <if test="sorttype==1">
+            ORDER BY a.comment_id DESC
+        </if>
+        limit #{offset},#{limit}
+
+     -->
+
+        SELECT  a.comment_id,a.comment_content,a.comment_time,u.user_id,u.user_name,u.nick_name,u.user_img from  occupation_comment a LEFT  JOIN   user_info u on a.comment_uid=u.user_id  where a.occupation_id=#{occ_id}
+        <if test="sorttype==0">
+            ORDER BY a.comment_id DESC
+        </if>
+
+        <if test="sorttype==1">
+            ORDER BY a.comment_id ASC
+        </if>
+        limit #{offset},#{limit}
+
+        <!--
+        SELECT  a.comment_id,a.comment_content,a.comment_time,b.reply_id,b.reply_content,b.reply_uid,b.reply_time,b.com_id,b.reply_to_uid,u.user_id,u.user_name,u.nick_name,u.user_img from  occupation_comment a left JOIN occupation_reply b on a.comment_id=b.com_id
+
+        LEFT  JOIN user_info u on a.comment_uid=u.user_id  where a.occupation_id=#{occ_id}
+        <if test="sorttype==0">
+            ORDER BY a.comment_id DESC
+        </if>
+
+        <if test="sorttype==1">
+            ORDER BY a.comment_id DESC
+        </if>
+        limit #{offset},#{limit}
+       -->
+
+
+    </select>
+
+
+    <resultMap type="OccupationCommentInfo" id="CommentListMap">
+        <id property="commentId" column="comment_id"/>
+        <result property="commentContent" column="comment_content"/>
+        <result property="commentTime" column="comment_time"/>
+        <result property="commentUid" column="comment_uid"/>
+        <association property="userInfo" column="comment_uid" javaType="UserInfo">
+            <id property="userId" column="user_id"/>
+            <result property="userName" column="user_name"/>
+            <result property="nickName" column="nick_name"/>
+            <result property="userImg" column="user_img"/>
+        </association>
+        <!-- ofType指定students集合中的对象类型 -->
+        <collection property="replyInfoList" column="comment_id" javaType="ArrayList"
+                    ofType="OccupationReplyInfo" select="getReplyById"/>
+        <!--
+        <collection property="replyInfoList" ofType="OccupationReplyInfo"   >
+            <id property="replyId" column="reply_id"/>
+            <result  property="replyContent" column="reply_content"/>
+            <result property="replyUid" column="reply_uid"/>
+            <result property="replyTime" column="reply_time"/>
+            <result property="replyToUid" column="reply_to_uid"/>
+        </collection>
+        -->
+    </resultMap>
+
+
+    <select id="getReplyById" resultMap="StudentResultMap" parameterType="java.lang.Integer" >
+        select b.reply_id,b.reply_content,b.reply_uid,b.reply_time,b.com_id,b.reply_to_uid,u.user_id,u.user_name,u.nick_name,u.user_img  from occupation_reply b  LEFT  JOIN  user_info u on b.reply_uid=u.user_id
+        where b.com_id=#{comment_id}  ORDER BY  b.reply_id desc   limit 0,5
+    </select>
+
+    <resultMap id="StudentResultMap" type="OccupationReplyInfo">
+        <id property="replyId" column="reply_id" />
+        <result property="replyContent" column="reply_content" />
+        <result property="replyTime" column="reply_time" />
+        <result property="replyUid" column="reply_uid" />
+        <association property="userInfo" column="reply_uid" javaType="UserInfo">
+            <id property="userId" column="user_id"/>
+            <result property="userName" column="user_name"/>
+            <result property="nickName" column="nick_name"/>
+            <result property="userImg" column="user_img"/>
+        </association>
+    </resultMap>
+
+    <select id="getOccupationReplyList"  resultMap="ReplyListMap">
+       select b.reply_id,b.reply_content,b.reply_uid,b.reply_time,b.com_id,b.reply_to_uid,u.user_id,u.user_name,u.nick_name,u.user_img  from occupation_reply b  LEFT  JOIN  user_info u on b.reply_uid=u.user_id
+         where  b.com_id=#{comment_id}  ORDER BY  b.reply_id desc  limit #{offset},#{limit}
+    </select>
+
+
+    <resultMap id="ReplyListMap" type="OccupationReplyInfo">
+        <id property="replyId" column="reply_id" />
+        <result property="replyContent" column="reply_content" />
+        <result property="replyTime" column="reply_time" />
+        <result property="replyUid" column="reply_uid" />
+        <association property="userInfo" column="reply_uid" javaType="UserInfo">
+            <id property="userId" column="user_id"/>
+            <result property="userName" column="user_name"/>
+            <result property="nickName" column="nick_name"/>
+            <result property="userImg" column="user_img"/>
+        </association>
+    </resultMap>
+
+
+
+    <select id="getOccupationById"  resultMap="OccudetailMap" parameterType="java.lang.Integer" >
+         SELECT  a.id,a.user_id uid,a.title,a.author,a.content,a.commentnum,a.createtime,u.user_name,u.user_img,u.nick_name,p.picid,p.occupation_id,p.thumbnail_url,p.pic_url FROM  occupation_info a
+          LEFT  JOIN  user_info u on a.user_id=u.user_id  LEFT  JOIN  occupation_pic_info p on a.id=p.occupation_id WHERE  a.id=#{occ_id}
+    </select>
+
+    <resultMap type="OccupationInfo" id="OccudetailMap">
+        <id property="id" column="id"/>
+        <result property="userId" column="uid"/>
+        <result property="title" column="title"/>
+        <result property="author" column="author"/>
+        <result property="commentnum" column="commentnum"/>
+        <result property="createtime" column="createtime"/>
+        <result property="content" column="content"/>
+        <association property="userInfo" column="uid" javaType="UserInfo">
+            <id property="userId" column="user_id"/>
+            <result property="userName" column="user_name"/>
+            <result property="nickName" column="nick_name"/>
+            <result property="userImg" column="user_img"/>
+        </association>
+        <!-- ofType指定students集合中的对象类型 -->
+        <collection property="occupationPicInfos" ofType="OccupationPicInfo" >
+            <id property="picid" column="picid"/>
+            <result  property="thumbnailUrl" column="thumbnail_url"/>
+            <result property="picUrl" column="pic_url"/>
+        </collection>
+    </resultMap>
+</mapper>
+
+
+
+

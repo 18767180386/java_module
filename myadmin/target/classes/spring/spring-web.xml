@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+
+    <!-- 激活组件扫描功能,扫描aop的相关组件组件 -->
+    <context:component-scan base-package="com.admin.aop"/>
+    <!-- 启动对@AspectJ注解的支持 -->
+    <aop:aspectj-autoproxy proxy-target-class="true" />
+    
+
+    <!--简化配置:
+    	1、自动注册DefaultAnnotationHandlerMapping,AnnotationMethodHandlerAdapter
+    	2、提供一系列:数据绑定,数字和日期的format,@NumberFormat,@DataTimeFormat,xml,json默认读写支持
+    -->
+    
+    
+    <mvc:annotation-driven/>
+
+    <!--静态资源默认servlet配置
+    	1、加入对静态资源的处理:js,css,gif,png
+    	2、允许使用"/"做整体映射
+    	 D:\work\java_demo\myadmin\target\myadmin-staticResource/user/picture
+
+    -->
+
+
+
+    <mvc:default-servlet-handler/>
+    <context:property-placeholder location="classpath:pic.properties" ignore-unresolvable="true"/>
+    <mvc:resources location="file:${local_path}/"  mapping="/${mapping_path}/**"  />
+    <mvc:resources location="/resource/lib/" mapping="/lib/**"/>
+    <mvc:resources location="/resource/static/" mapping="/static/**"/>
+    <mvc:resources location="/resource/temp/" mapping="/temp/**"/>
+    <mvc:resources location="/resource/upload/" mapping="/upload/**"/>
+
+    <!--配置JSP　显示ViewResolver-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+         <property name="prefix" value="/WEB-INF/admin/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    
+    <!-- 配置文件上传，如果没有使用文件上传可以不用配置，当然如果不配，那么配置文件中也不必引入上传组件包 -->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--默认编码-->
+        <property name="defaultEncoding" value="utf-8" />
+       <!-- 文件大小最大值-->
+        <property name="maxUploadSize" value="10485760000" />
+       <!-- 内存中的最大值-->
+        <property name="maxInMemorySize" value="40960" />
+    </bean>
+
+    <!-- <bean id="multipartResolver"
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">  
+        默认编码
+        <property name="defaultEncoding" value="utf-8" />  
+        文件大小最大值
+        <property name="maxUploadSize" value="10485760000" />  
+        内存中的最大值
+        <property name="maxInMemorySize" value="40960" />  
+    </bean> 
+    
+    
+    避免IE执行AJAX时，返回JSON出现下载文件
+    <bean id="mappingJacksonHttpMessageConverter"
+        class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+        <property name="supportedMediaTypes">
+            <list>
+                <value>text/html;charset=UTF-8</value>
+            </list>
+        </property>
+    </bean> -->
+    
+<!--     配置拦截器 -->
+<!-- <mvc:interceptors> -->
+<!--     多个拦截器，按顺序执行         -->
+<!--     <mvc:interceptor> -->
+<!--         <mvc:mapping path="/**"/> 表示拦截所有的url包括子url路径 -->
+<!--         <bean class="ssm.interceptor.HandlerInterceptor1"/> -->
+<!--     </mvc:interceptor> -->
+<!--     <mvc:interceptor> -->
+<!--         <mvc:mapping path="/**"/> -->
+<!--         <bean class="ssm.interceptor.HandlerInterceptor2"/> -->
+<!--     </mvc:interceptor> -->
+<!--     <mvc:interceptor> -->
+<!--         <mvc:mapping path="/**"/> -->
+<!--         <bean class="ssm.interceptor.HandlerInterceptor3"/> -->
+<!--     </mvc:interceptor> -->
+<!-- </mvc:interceptors> -->
+
+
+<!--   <mvc:interceptors>
+        <mvc:interceptor>
+         
+            <mvc:mapping path="/*"/>
+        
+            <mvc:exclude-mapping path="/login"/>
+            <bean class="com.yingjun.ssm.interceptor.LoginInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors> -->
+    
+    
+  
+
+<!--配置拦截器, 多个拦截器,顺序执行  <mvc:mapping path="/user/**" />   -->  
+<mvc:interceptors>    
+    <mvc:interceptor>    
+        <!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller -->  
+       <!-- <mvc:mapping path="/user/*"/>  拦截范围 
+            <mvc:exclude-mapping path="/user/login.*"/>-不被拦截范围（路径）
+            -->
+        <mvc:mapping path="/**" />
+        <mvc:exclude-mapping path="/userinfo/*"/>
+        <mvc:exclude-mapping path="/user/login"/>
+        <mvc:exclude-mapping path="/user/loginaction"/>
+        <mvc:exclude-mapping path="/authcode/getcode"/>
+        <mvc:exclude-mapping path="/authcode/getcode"/>
+        <mvc:exclude-mapping path="/occupation/*"/>
+        <mvc:exclude-mapping path="/picture/*"/>
+        <mvc:exclude-mapping path="/user/testpic"/>
+        <mvc:exclude-mapping path="/lib/**"/>
+        <mvc:exclude-mapping path="/static/**"/>
+        <mvc:exclude-mapping path="/temp/**"/>
+        <mvc:exclude-mapping path="/upload/**"/>
+        <mvc:exclude-mapping path="/poster/**"/>
+        <mvc:exclude-mapping path="/resources/**"/>
+        <mvc:exclude-mapping path="/staticResource/**"/>
+        <bean class="com.admin.interceptor.CommonInterceptor"></bean>
+    </mvc:interceptor>
+
+    <mvc:interceptor>
+        <mvc:mapping path="/userinfo/*"/>
+        <mvc:mapping path="/occupation/*"/>
+        <mvc:exclude-mapping path="/userinfo/test"/>
+        <mvc:exclude-mapping path="/userinfo/userlogin"/>
+        <mvc:exclude-mapping path="/userinfo/userreg"/>
+        <mvc:exclude-mapping path="/userinfo/qt"/>
+        <bean class="com.admin.interceptor.AppInterceptor"></bean>
+    </mvc:interceptor>
+
+    <!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->  
+</mvc:interceptors>
+
+    <!-- 开启注解 -->
+
+
+<!--   <mvc:interceptors>
+   日志拦截器
+   <mvc:interceptor>
+    <mvc:mapping path="/**" />
+    <mvc:exclude-mapping path="/static/**" />
+    <bean class="拦截器java代码路径" />
+   </mvc:interceptor>
+ </mvc:interceptors>
+ 
+ 
+说明：
+
+1）mvc:mapping 拦截器路径配置
+
+2）mvc:exclude-mapping 拦截器不需要拦截的路径 -->
+    
+    
+  <!-- 
+    <mvc:interceptors>  
+      <bean class="com.yingjun.ssm.interceptor.LoginInterceptor" />  
+    </mvc:interceptors>  -->
+
+    <!--扫描web相关的controller-->
+    <context:component-scan base-package="com.admin.web"/>
+
+	<!--全局异常捕捉 -->
+	<bean class="com.admin.exception.GlobalExceptionResolver" />
+	
+	
+</beans>

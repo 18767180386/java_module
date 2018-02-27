@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.dao.UserInfoDao">
+    <select id="checkUserName" resultType="UserInfo" parameterType="String">
+        SELECT *  FROM user_info where  user_name=#{name}
+    </select>
+
+    <insert id="insertUser" parameterType="UserInfo" useGeneratedKeys="true" keyProperty="userId">
+        <!--insert into admin_user(user_name,user_phone,create_time,score,user_password,pic,sex,user_email) values(#{userName},#{userPhone},#{createTime},#{score},#{userPassword},#{pic},#{sex},#{userEmail})-->
+        <!--
+        INSERT INTO user_info (user_name,user_password)
+        SELECT #{userName},#{userPhone},#{createTime},#{score},#{userPassword},#{pic},#{sex},#{userEmail},#{status}
+        FROM DUAL
+        WHERE NOT EXISTS (SELECT * FROM user_info WHERE user_name =#{userName});
+
+        -->
+        INSERT INTO user_info (user_name,user_password,status) values (#{userName},#{userPassword},#{status})
+    </insert>
+
+
+    <select id="login" resultType="UserInfo" parameterType="String">
+        SELECT user_id,user_name FROM user_info where  user_name=#{userName} and  user_password=#{userPassword} and status=1
+    </select>
+
+
+
+</mapper>

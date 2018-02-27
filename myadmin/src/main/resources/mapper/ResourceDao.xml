@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admin.dao.ResourceDao">
+
+    <select id="getResourceList" resultType="Resource">
+        SELECT *  FROM admin_resource
+        <where>
+            <if test="keyword!=null">
+                title LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>
+        ORDER BY id desc	limit #{offset},#{limit}
+    </select>
+
+
+    <!--用户批量删除,逻辑删除-->
+    <delete id="batchDelete" parameterType="String"  >
+        delete from admin_resource  where id in
+        <foreach collection="array" item = "id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="getResourceCount" resultType="int">
+        SELECT count(*)
+        FROM admin_resource
+        <where>
+            <if test="keyword!=null">
+                title LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+        </where>
+    </select>
+
+
+
+    <select id="getParentResourceList" resultType="Resource" parameterType="int" >
+        SELECT *  FROM admin_resource
+    </select>
+
+
+    <insert id="addResource" parameterType="Resource">
+        insert into admin_resource(title,url,parent_id) values(#{title},#{url},#{parentId})
+    </insert>
+
+    <delete id="delResource" parameterType="int"   >
+        delete from  admin_resource where id=#{id}
+    </delete>
+
+
+
+    <select id="getResourceById" parameterType="int"  resultType="Resource">
+        SELECT * FROM admin_resource where id=#{id}
+    </select>
+
+
+    <update id="updateResource" parameterType="Resource" >
+        UPDATE admin_resource
+        SET
+        title = #{title} , url=#{url},parent_id=#{parentId}  where id=#{id}
+    </update>
+
+
+
+    <select id="getResourceInfo" resultType="Resource" parameterType="int" >
+        SELECT *  FROM admin_resource  where parent_id=#{id}
+    </select>
+
+
+    <insert id="addRole" parameterType="Role"   useGeneratedKeys="true" keyProperty="id">
+        insert into admin_role(role_name,role_desc) values(#{roleName},#{roleDesc})
+    </insert>
+
+
+    <insert id="addRoleResourseByList" parameterType="List">
+        insert role_resource (role_id,resource_id)  values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.roleId},#{item.resourceId})
+        </foreach>
+    </insert>
+
+
+    <select id="getRole" resultType="Role" parameterType="int" >
+        SELECT *  FROM admin_role  where id=#{id}
+    </select>
+
+
+    <select id="getRoleResourceInfo" resultType="RoleResource" parameterType="int" >
+        SELECT *  FROM role_resource   where role_id=#{id}
+    </select>
+
+
+
+    <select id="getRoleList" resultType="Role">
+        SELECT *  FROM admin_role
+        <where>
+            <if test="keyword!=null">
+                role_name LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>
+        ORDER BY id desc	limit #{offset},#{limit}
+    </select>
+
+
+    <select id="getRoleCount" resultType="int">
+        SELECT count(*)
+        FROM admin_role
+        <where>
+            <if test="keyword!=null">
+                role_name LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+        </where>
+    </select>
+
+    <delete id="delRoleById" parameterType="int"   >
+        delete from  admin_role where id=#{id}
+    </delete>
+
+
+    <delete id="delRoleResourceByRoleId" parameterType="int"   >
+        delete from  role_resource where role_id=#{id}
+    </delete>
+
+    <delete id="batchDeleteRole" parameterType="String"  >
+        delete from admin_role  where id in
+        <foreach collection="array" item = "id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <delete id="batchDeleteRoleResource" parameterType="String"  >
+        delete from role_resource  where role_id in
+        <foreach collection="array" item = "id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <update id="updateRole" parameterType="Role" >
+        UPDATE admin_role
+        SET
+        role_name= #{roleName},role_desc=#{roleDesc}  where id=#{id}
+    </update>
+
+
+
+    <select id="getRoleListNew" resultType="Role">
+        SELECT a.id,a.role_name,a.role_desc,GROUP_CONCAT(c.title) permissionname from admin_role a LEFT  JOIN role_resource  b on a.id=b.role_id  JOIN  admin_resource c on b.resource_id=c.id
+        <where>
+            <if test="keyword!=null">
+                a.role_name LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>  GROUP BY a.id   ORDER BY a.id desc	limit #{offset},#{limit}
+    </select>
+
+
+    <select id="getRoleCountNew" resultType="int">
+        SELECT count(*)  from (SELECT count(*) from admin_role a LEFT  JOIN role_resource  b on a.id=b.role_id  JOIN  admin_resource c on b.resource_id=c.id
+        <where>
+            <if test="keyword!=null">
+                a.role_name LIKE CONCAT(CONCAT('%', #{keyword}), '%')
+            </if>
+
+        </where>   GROUP BY a.id)  m
+
+    </select>
+
+
+
+</mapper>

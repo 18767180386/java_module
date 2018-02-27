@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="beauty_ssm" />
+        <module name="myadmin" />
+        <module name="mytaoke" />
+        <module name="privilege-api" />
+        <module name="privilege-api-server" />
+        <module name="privilege-data" />
+        <module name="privilege-model" />
+        <module name="privilege-server" />
+        <module name="quick4j" />
+        <module name="ssm3" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="beauty_ssm" target="1.7" />
+      <module name="myadmin" target="1.5" />
+      <module name="mytaoke" target="1.7" />
+      <module name="privilege" target="1.5" />
+      <module name="privilege-api" target="1.5" />
+      <module name="privilege-api-server" target="1.5" />
+      <module name="privilege-data" target="1.5" />
+      <module name="privilege-model" target="1.5" />
+      <module name="privilege-server" target="1.5" />
+      <module name="quick4j" target="1.7" />
+      <module name="ssm3" target="1.5" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

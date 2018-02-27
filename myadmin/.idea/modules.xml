@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../beauty_ssm-master/beauty_ssm.iml" filepath="$PROJECT_DIR$/../beauty_ssm-master/beauty_ssm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/myadmin.iml" filepath="$PROJECT_DIR$/myadmin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../mytaoke/mytaoke.iml" filepath="$PROJECT_DIR$/../mytaoke/mytaoke.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cl-privilege-master/privilege.iml" filepath="$PROJECT_DIR$/../cl-privilege-master/privilege.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cl-privilege-master/privilege-api/privilege-api.iml" filepath="$PROJECT_DIR$/../cl-privilege-master/privilege-api/privilege-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cl-privilege-master/privilege-api-server/privilege-api-server.iml" filepath="$PROJECT_DIR$/../cl-privilege-master/privilege-api-server/privilege-api-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cl-privilege-master/privilege-data/privilege-data.iml" filepath="$PROJECT_DIR$/../cl-privilege-master/privilege-data/privilege-data.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cl-privilege-master/privilege-model/privilege-model.iml" filepath="$PROJECT_DIR$/../cl-privilege-master/privilege-model/privilege-model.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../cl-privilege-master/privilege-server/privilege-server.iml" filepath="$PROJECT_DIR$/../cl-privilege-master/privilege-server/privilege-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../quick4j-master/quick4j.iml" filepath="$PROJECT_DIR$/../quick4j-master/quick4j.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../springuploadpic/ssm3.iml" filepath="$PROJECT_DIR$/../springuploadpic/ssm3.iml" />
+    </modules>
+  </component>
+</project>

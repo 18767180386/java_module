@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/../beauty_ssm-master" />
+    <file type="web" url="file://$PROJECT_DIR$/../cl-privilege-master/privilege-api-server" />
+    <file type="web" url="file://$PROJECT_DIR$/../cl-privilege-master/privilege-server" />
+    <file type="web" url="file://$PROJECT_DIR$" />
+    <file type="web" url="file://$PROJECT_DIR$/../mytaoke" />
+    <file type="web" url="file://$PROJECT_DIR$/../quick4j-master" />
+    <file type="web" url="file://$PROJECT_DIR$/../springuploadpic" />
+  </component>
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/../mytaoke/pom.xml" />
+        <option value="$PROJECT_DIR$/../quick4j-master/pom.xml" />
+        <option value="$PROJECT_DIR$/../beauty_ssm-master/pom.xml" />
+        <option value="$PROJECT_DIR$/../cl-privilege-master/pom.xml" />
+        <option value="$PROJECT_DIR$/../springuploadpic/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out" />
+  </component>
+</project>

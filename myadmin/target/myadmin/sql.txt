@@ -1,0 +1,288 @@
+https://www.cnblogs.com/fsjohnhuang/p/4078659.html
+  其属性如下：
+
+   parameterType ，入参的全限定类名或类型别名
+
+   keyColumn ，设置数据表自动生成的主键名。对特定数据库（如PostgreSQL），若自动生成的主键不是第一个字段则必须设置
+
+   keyProperty ，默认值unset，用于设置getGeneratedKeys方法或selectKey子元素返回值将赋值到领域模型的哪个属性中
+
+   useGeneratedKeys ，取值范围true|false(默认值)，设置是否使用JDBC的getGenereatedKeys方法获取主键并赋值到keyProperty设置的领域模型属性中。MySQL和SQLServer执行auto-generated key field，因此当数据库设置好自增长主键后，可通过JDBC的getGeneratedKeys方法获取。但像Oralce等不支持auto-generated key field的数据库就不能用这种方法获取主键了
+
+   statementType ，取值范围STATEMENT,PREPARED（默认值）,CALLABLE
+
+   flushCache ，取值范围true(默认值)|false，设置执行该操作后是否会清空二级缓存和本地缓存
+
+   timeout ，默认为unset（依赖jdbc驱动器的设置），设置执行该操作的最大时限，超时将抛异常
+
+   databaseId ，取值范围oracle|mysql等，表示数据库厂家，元素内部可通过`<if test="_databaseId = 'oracle'">`来为特定数据库指定不同的sql语句
+
+
+
+三、一般的INSERT操作——返回值为插入的记录数目　　　　　　　　　　　　　　　　
+
+mapper接口代码：
+
+复制代码
+/**
+ * 添加学生信息
+ * @param student 学生实例
+ * @return 成功操作的记录数目
+ */
+int add(EStudent student);
+复制代码
+mapper.xml：
+
+<insert id="add" parameterType="EStudent">
+  insert into TStudent(name, age) values(#{name}, #{age})
+</insert
+
+
+四、执行INSERT操作后获取记录主键　　　　　　　　　　　　　　　　　　　　　　　　
+
+mapper接口代码：
+
+复制代码
+/**
+ * 添加学生信息
+ * @param student 学生实例
+ * @return 成功操作的记录数目
+ */
+int add(EStudent student);
+复制代码
+至于mapper.xml则分为两种情况了，一种是数据库(如MySQL,SQLServer)支持auto-generated key field，另一种是数据库（如Oracle）不支持auto-generated key field的。
+
+ 1. 数据库(如MySQL,SQLServer)支持auto-generated key field的情况
+
+    手段①（推荐做法）：
+
+<insert id="add" parameterType="EStudent" useGeneratedKeys="true" keyProperty="id">
+  insert into TStudent(name, age) values(#{name}, #{age})
+</insert>
+    手段②：
+
+复制代码
+<insert id="add" parameterType="EStudent">
+  // 下面是SQLServer获取最近一次插入记录的主键值的方式
+  <selectKey resultType="_long" keyProperty="id" order="AFTER">
+    select @@IDENTITY as id
+  </selectKey>
+  insert into TStudent(name, age) values(#{name}, #{age})
+</insert>
+复制代码
+  由于手段②获取主键的方式依赖数据库本身，因此推荐使用手段①。
+
+ 2. 数据库(如Oracle)不支持auto-generated key field的情况
+
+复制代码
+<insert id="add" parameterType="EStudent">
+  <selectKey keyProperty="id" resultType="_long" order="BEFORE">
+    select CAST(RANDOM * 100000 as INTEGER) a FROM SYSTEM.SYSDUMMY1
+  </selectKey>
+  insert into TStudent(id, name, age) values(#{id}, #{name}, #{age})
+</insert
+复制代码
+  注意：mapper接口返回值依然是成功插入的记录数，但不同的是主键值已经赋值到领域模型实体的id中了。
+
+
+
+五、 selectKey子元素 详解　　　　　　　　　　　　　　　　　　　　　　　　　　　　
+
+  作用：在insert元素和update元素中插入查询语句。
+
+  其属性如下：
+
+     keyProperty ，默认值unset，用于设置getGeneratedKeys方法或selectKey子元素返回值将赋值到领域模型的哪个属性中
+
+     resultType ，keyPropety所指向的属性类全限定类名或类型别名
+
+     order属性 ，取值范围BEFORE|AFTER，指定是在insert语句前还是后执行selectKey操作
+
+     statementType ，取值范围STATEMENT,PREPARED（默认值）,CALLABLE
+
+注意：selectKey操作会将操作查询结果赋值到insert元素的parameterType的入参实例下对应的属性中。并提供给insert语句使用
+
+
+
+六、批量插入　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　
+
+  方式1：
+
+<insert id="add" parameterType="EStudent">
+  <foreach collection="list" item="item" index="index" separator=";">
+    INSERT INTO TStudent(name,age) VALUES(#{item.name}, #{item.age})
+  </foreach>
+</insert>
+上述方式相当语句逐条INSERT语句执行，将出现如下问题：
+1. mapper接口的add方法返回值将是最一条INSERT语句的操作成功的记录数目（就是0或1），而不是所有INSERT语句的操作成功的总记录数目
+2. 当其中一条不成功时，不会进行整体回滚。
+
+  方式2（仅限于MSSQL）：
+
+复制代码
+<insert id="add" parameterType="EStudent">
+  WITH R AS
+  <foreach collection="list" item="item" index="index" open="(" close=")" separator="union all">
+    SELECT #{item.name} as a, #{item.age} as b
+  </foreach>
+  INSERT INTO TStudent(name,age) SELECT a, b FROM R
+</insert>
+复制代码
+上述方式解决了方式1中的问题。但该方式仅限于MSSQL
+
+  方式3（通用解决方法）方式3（MSSQL）：
+
+ INSERT INTO TStudent(name,age)
+  <foreach collection="list" item="item" index="index" open="(" close=")" separator="union all">
+    SELECT #{item.name} as a, #{item.age} as b
+  </foreach>
+该方式与方式2效果一样，若为Oracle则采用
+
+INSERT INTO TStudent(name,age)
+  <foreach collection="list" item="item" index="index" open="(" close=")" separator="union all">
+    SELECT #{item.name} as a, #{item.age} as b FROM DUAL
+  </foreach>
+
+
+  https://www.cnblogs.com/duanxz/p/3830509.html
+
+  <?xml version="1.0" encoding="utf8"?>
+  <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.abc.mapper.StudentMapper">
+  <select id="getById" parameterType="int" resultMap="studentResultMap">
+  select id,name,gender,major,grade,supervisor_id from student where id=#{id}
+  </select>
+  <select id="selectSupervisor" parameterType="int" resultMap="supervisorResultMap">
+  select id,name,gender,title,research_area
+  from teacher where id=#{id}
+  </select>
+  <resultMap id="studentResultMap" type="Student">
+  <id property="id" column="id"/>
+  <result property="name" column="name"/>
+  <result property="gender" column="gender"/>
+  <result property="major"  column="major"/>
+  <result property="grade"  column="grade"/>
+  <!--column="supervisor_id"不能少。此列的值作为参数
+  传递给要引用的select语句，用来查询相应学生的指导教师
+  的信息。select属性指定要引用的select语句-->
+  <association property="supervisor" javaType="Teacher"
+  column="supervisor_id" select="selectSupervisor"/>
+  </resultMap>
+  <!--教师实体映射-->
+  <resultMap id="supervisorResultMap" type="Teacher">
+  <id property="id" column="id"/>
+  <result property="name" column="name"/>
+  <result property="gender" column="gender"/>
+  <result property="researchArea" column="research_area"/>
+  <result property="title" column="title"/>
+  </resultMap>
+  </mapper>
+
+
+http://blog.csdn.net/mamba10/article/details/20927225
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cn.hnust.dao.InfoManageDao" >
+
+  <resultMap id="ClazzResultMap" type="com.cn.hnust.pojo.ClazzEntity" >
+    <id column="classID" property="clazzID" jdbcType="INTEGER" />
+    <result column="className" property="clazzName" jdbcType="VARCHAR" />
+    <collection property="studentList" column="classID" javaType="ArrayList"
+                ofType="com.cn.hnust.pojo.StudentEntity" select="getStudentByClassID"/>
+  </resultMap>
+
+  <resultMap id="StudentResultMap" type="com.cn.hnust.pojo.StudentEntity">
+    <id property="stuID" column="stuID" />
+    <result property="stuName" column="stuName" />
+    <result property="stuAge" column="stuAge" />
+    <result property="stuAddress" column="stuAddress" />
+  </resultMap>
+
+<select id="getClassByID" resultMap="ClazzResultMap" parameterType="java.lang.Integer" >
+    select classID,className
+    from class_t
+    where classID = #{clazzID}
+</select>
+
+<select id="getStudentByClassID" resultMap="StudentResultMap" parameterType="java.lang.Integer" >
+    select stuID,stuName,stuAge,stuAddress,classID
+    from student_t
+    where classID = #{clazzID}
+</select>
+
+</mapper>
+
+
+https://www.cnblogs.com/shihaiming/p/6209914.html存储过程
+
+http://blog.csdn.net/yangjiehuan/article/details/78523080  MyBatis的collection只能查询一条记录
+
+
+http://www.mamicode.com/info-detail-1171362.html
+
+
+<?xml version="1.0" encoding="utf8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--与以前一样，namespace的值是对应的映射器接口的完整名称-->
+<mapper namespace="com.abc.mapper.TeacherMapper">
+<!--TeacherMapper接口中getById方法对应的SQL语句。
+查询教师及其指导的学生的信息。由于教师、学生都有
+id、name、gender等属性，因此给教师的字段都起了别名-->
+<select id="getById" parameterType="int" resultMap="supervisorResultMap">
+select t.id t_id, t.name t_name, t.gender t_gender,
+t.research_area t_research_area, t.title t_title,
+s.id,s.name, s.gender,s.major,s.grade
+from teacher t,student s where t.id=#{id}
+and s.supervisor_id = t.id
+</select>
+<!--教师实体映射-->
+<resultMap id="supervisorResultMap" type="Teacher">
+<id property="id" column="t_id"/>
+<result property="name" column="t_name"/>
+<result property="gender" column="t_gender"/>
+<result property="researchArea" column="t_research_area"/>
+<result property="title" column="t_title"/>
+<!--需要注意的是，上面的select语句中学生的字段名/别名应与
+下面的column属性一致。ofType指collection包含的元素的类型，
+此属性不可少-->
+<collection property="supStudents"ofType="Student">
+<id property="id" column="id"/>
+<result property="name"   column="name"/>
+<result property="gender" column="gender"/>
+<result property="major"  column="major"/>
+<result property="grade"  column="grade"/>
+<!--映射学生的指导教师属性，用到了
+supervisorResultMap本身-->
+<association property="supervisor"
+resultMap="supervisorResultMap"/>
+</collection>
+</resultMap>
+</mapper>
+
+
+
+
+<?xml version="1.0" encoding="utf8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--与以前一样，namespace的值是对应的映射器接口的完整名称-->
+<mapper namespace="com.abc.mapper.TeacherMapper">
+<!--TeacherMapper接口中getById方法对应的SQL语句。
+查询教师的信息。-->
+<select id="getById" parameterType="int" resultMap="supervisorResultMap">
+select * from teacher where id=#{id}
+</select>
+<!--教师实体映射-->
+<resultMap id="supervisorResultMap" type="Teacher">
+<id property="id" column="id"/>
+<result property="name" column="name"/>
+<result property="gender" column="gender"/>
+<result property="researchArea" column="research_area"/>
+<result property="title" column="title"/>
+<!--ofType指collection包含的元素的类型，此属性不可少。
+column属性指把上述的getById的select语句中的教师id列的值作为参数
+传递给将要引用到的下述的getStudents的select语句，此属性不可少。
+引用的形式为：命名空间.select语句id-->
+<collection property="supStudents" column="id" ofType="Student"
+select="com.abc.mapper.StudentMapper.getStudents"/>
+</resultMap>
+</mapper>

@@ -1,0 +1,195 @@
+http://www.cnblogs.com/hongwz/p/5764917.html  aop 原理
+
+http://www.codes51.com/article/detail_1337596.html springmv 分页
+
+http://www.cnblogs.com/wuyifu/p/3627516.html  上传图片
+
+http://blog.csdn.net/qq_33290787/article/details/52277034
+
+https://zhidao.baidu.com/question/684905424267743732.html  图片目录
+
+ 图片路径处理
+http://blog.csdn.net/maizang52/article/details/49204687
+
+http://blog.csdn.net/wolf_soul/article/details/47082965
+
+http://blog.csdn.net/yansong_8686/article/details/47356499
+
+
+http://blog.csdn.net/cwzhsi/article/details/43448769
+
+图片映射  问题
+http://blog.csdn.net/yansong_8686/article/details/47356499
+
+http://blog.csdn.net/bing709/article/details/50791000  事务
+
+http://www.cnblogs.com/qiumingcheng/p/5912321.html
+
+http://blog.csdn.net/qq_33186251/article/details/55050307  session登录验证
+
+http://blog.csdn.net/weilai_zhilu/article/details/53306104?locationNum=11&fps=1
+
+http://www.cnblogs.com/gxbk629/p/5016871.html
+
+
+http://blog.csdn.net/patrickyoung6625/article/details/45694157  springsession
+
+
+http://www.cnblogs.com/gdufs/p/6833270.html
+
+https://zhidao.baidu.com/question/459002191109986725.html
+
+http://www.cnblogs.com/beyang/p/6104802.html
+
+http://www.cnblogs.com/beyang/p/6104802.html
+
+http://www.cnblogs.com/xdp-gacl/p/4200090.html 文件上传
+
+http://www.cnblogs.com/drwong/p/5887348.html
+http://www.cnblogs.com/wbyp/p/6574971.html   大文件上传
+
+http://www.cnblogs.com/estellez/p/4530011.html  多文件上传
+
+http://www.cnblogs.com/hongdada/p/5775491.html  断点调试
+
+1：Step Over ,进入下一步，如果是方法，那就直接跳过（F8）
+
+2：Step Into,进入下一步，如果是方法，就进入方法内部，但是不会进入jdk封装的方法。（F7）
+
+3：Force Step Into:强制进入下一步，不管是什么方法，即使是jdk封装的方法，也会进入。(Alt+Shift+F7)
+
+4：Step Out:跳转到下一个断点，没有一直运行到最后。（Shift+F8）
+
+5: Run to Cursor:运行到光标处 (Alt+F9)
+
+ =========================
+
+F9            resume programe 恢复程序，下一个断点
+
+
+http://blog.csdn.net/chexlong/article/details/37697555  权限管理
+
+
+
+http://blog.csdn.net/liangbinny/article/details/6309893 标签库
+
+SpringMVC学习系列（11） 之 表单标签
+http://blog.csdn.net/hp_yangpeng/article/details/51906654
+http://www.cnblogs.com/zhanglei93/p/6273655.html
+
+
+http://blog.csdn.net/qiaqia609/article/details/52678393  mysql 父子节点
+http://www.cnblogs.com/52php/p/5657980.html
+http://blog.csdn.net/irelandken/article/details/11694043
+http://blog.csdn.net/u013983450/article/details/52180541  重要  树状结构
+http://www.cnblogs.com/zf29506564/p/5588153.html  mysql
+
+
+http://www.cnblogs.com/Sunnor/p/6130380.html  springmc modelandview
+
+
+http://www.cnblogs.com/linjiqin/archive/2013/06/21/3148066.html  java 树状结构
+
+http://blog.csdn.net/yb642518034/article/details/52824729
+
+http://blog.csdn.net/hhx0626/article/details/52336179
+
+http://blog.csdn.net/hhx0626/article/details/52336179  重要
+
+http://www.cnblogs.com/xingyunblog/p/6243179.html  mytabis 返回主键
+
+
+http://blog.csdn.net/swingpyzf/article/details/20230865 上传文件
+
+idea的debug调试快捷键
+断点调试
+f8 下一步
+f7进入方法
+
+
+快捷键	功能描述
+F8	单步调试，不进入函数内部
+F7	单步调试，进入函数内部
+Shift+F7	选择要进入的函数
+Shift+F8	跳出函数
+Alt+F9	运行到断点
+Alt+F8	执行表达式查看结果
+F9	继续执行，进入下一个断点或执行完程序
+Ctrl+F8	设置/取消当前行断点
+Ctrl+Shift+F8
+查看断点
+
+
+http://1008610086.blog.51cto.com/4995677/1538464  退出登录
+
+http://www.cnblogs.com/Ron-Zheng/p/Ron.html?hmsr=toutiao.io&utm_medium=toutiao.io&utm_source=toutiao.io  自定义标签  请求服务层
+
+http://blog.csdn.net/tonytfjing/article/details/39207551  拦截器
+
+http://boytnt.blog.51cto.com/966121/1870286  主解式拦截
+
+http://www.cnblogs.com/mao2080/p/6832609.html
+
+
+http://hotstrong.iteye.com/blog/1160153  权限控制
+
+
+http://blog.csdn.net/duqian42707/article/details/52886220  ztree 表格树
+
+
+http://www.jianshu.com/p/f256866a2ebe SSM框架之Log4j配置
+
+
+https://zhuanlan.zhihu.com/p/24910702  java面试
+
+
+比如大数据、分布式缓存、分布式消息服务、分布式计算、软负载均衡等等。这些技术，你能精通任何一项，都将是你未来面试时巨大的优势，因此如果你对某一项技术感兴趣的话，
+
+整大数据，搞搞Hadoop、hbase一类的东西。过不了一段时间，就觉得没意思，又去研究分布式缓存，比如redis。然后又过不了一段时间，又去研究分布式计算，比如整整Mapreduce或者storm。
+
+http://blog.csdn.net/chenxiaoyu_csdn/article/details/70847203 大文件上传
+http://www.cnblogs.com/drwong/p/5887348.html
+http://blog.csdn.net/qq_34698126/article/details/54429721
+
+http://www.cnblogs.com/baiyunchen/p/5383507.html
+
+http://www.cnblogs.com/baiyunchen/p/5383507.html 分块上传
+
+http://blog.csdn.net/baohuan_love/article/details/14225141  tomcat发布
+
+
+http://www.cnblogs.com/qiufuzong/p/6705227.html 生成Java包
+
+
+http://blog.csdn.net/aiu_iu/article/details/71844568?utm_source=itdadao&utm_medium=referral  创建父子工程
+
+
+java http://www.cnblogs.com/peida/archive/2013/04/26/3038503.html 注解
+
+
+
+http://dl.mongodb.org/dl/win32/x86_64   mogdb
+
+http://blog.csdn.net/alex_bean/article/details/75066745
+
+http://blog.csdn.net/hfhwfw161226/article/details/73498137
+
+http://blog.csdn.net/fdipzone/article/details/51549520  数据备份
+
+http://blog.csdn.net/xinxu_wang/article/details/52441807 设置用户名和密码
+
+
+http://blog.csdn.net/jack__frost/article/details/64964208 token
+
+http://blog.csdn.net/u011466609/article/details/50886467
+
+
+http://blog.csdn.net/jdsjlzx/article/details/52442113
+
+http://blog.csdn.net/u011466609/article/details/50886467
+
+
+https://github.com/shuzheng/zheng   完整列子
+
+
+https://www.w3cschool.cn/fastjson/fastjson-api.html  fastjson api

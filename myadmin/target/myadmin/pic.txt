@@ -1,0 +1,70 @@
+
+Java图片处理开源框架 Thumbnailator
+水印效果如上图，为了实现效果，但是并不美观Java图片处理开源框架 <wbr>Thumbnailator
+
+其他效果图就不帖，直接上码：
+（注：开始图片真实大小，这里用的是1366*768）
+                //1,水印
+Thumbnails.of("imges/a.jpg")
+.size(1366, 768)
+.watermark(Positions.BOTTOM_CENTER,ImageIO.read(new File("imges/biaoti.png")),0.5f)
+.outputQuality(0.8f)
+.toFile("f:/abc.jpg");
+//2,不按照比例，指定大小进行缩放
+Thumbnails.of("imges/a.jpg")
+.size(800, 640)
+.keepAspectRatio(false)
+.toFile("f:/ac.jpg");
+//3,旋转
+//rotate(角度),正数：顺时针负数：逆时针 .这里旋转90度
+Thumbnails.of("imges/a.jpg")
+.rotate(90)
+.toFile("f:/ac.jpg");
+//4,指定大小进行缩放，
+//指定大小后，比指定的小，不变；比指定的大，就缩小
+Thumbnails.of("imges/a.jpg")
+.size(800, 640)
+.toFile("f:/ac.jpg");
+//5.按照比例进行缩放
+//小于1或者大于1
+Thumbnails.of("imges/a.jpg")
+.scale(0.5f)
+.toFile("f:/ac.jpg");
+//6，裁剪
+//6.1图片中心 800*640
+Thumbnails.of("imges/a.jpg")
+.sourceRegion(Positions.CENTER,800,640)
+.size(800, 640)
+.keepAspectRatio(false)
+.toFile("f:/ac.jpg");
+//6.2图片右下 800*640
+Thumbnails.of("imges/a.jpg")
+.sourceRegion(Positions.BOTTOM_RIGHT,800,640)
+.size(800, 640)
+.keepAspectRatio(false)
+.toFile("f:/ac.jpg");
+//6.3指定坐标
+Thumbnails.of("imges/a.jpg")
+.sourceRegion(300,300,800,640)
+.size(800, 640)
+.keepAspectRatio(false)
+.toFile("f:/ac.jpg");
+//7图片格式的转化
+Thumbnails.of("imges/a.jpg")
+.size(800, 640)
+.outputFormat("png")
+.keepAspectRatio(false)
+.toFile("f:/ac.png");
+//8输出到OutputStream
+OutputStream os =new FileOutputStream("f:/ac.png");
+Thumbnails.of("imges/a.jpg")
+.size(800, 640)
+.toOutputStream(os);
+//9,输出到BufferedImage
+BufferedImage th= Thumbnails.of("imges/a.jpg")
+.size(800, 640)
+.asBufferedImage();
+ImageIO.write(th, "jpg", new File("f:/ac.jpg"));
+
+
+http://blog.csdn.net/u014108448/article/details/46804729  上传图片
