@@ -14,7 +14,7 @@ public @interface AuthCheck {
     String type() default "";
     /**
      * 是否需要写权限
-     * @return
+     * @return```````
      */
     boolean write() default false;
 }

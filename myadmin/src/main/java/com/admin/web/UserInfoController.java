@@ -157,7 +157,6 @@ public  class UserInfoController extends  ApiController {
             // long yd = DateUtils.truncate(date, Calendar.DAY_OF_MONTH).getTime();
             System.out.println("mnnnnnnnnnnn" + ys + "-------------" + ds + "---" + new Gson().toJson(new Date()));
 
-
         /*
         Map<String,String> map=new HashMap<String, String>();
         map.put("title","年后22112洞察束带2年后22112洞察束带2年后22112洞察束带2年后22112洞察束带2");
@@ -177,9 +176,8 @@ public  class UserInfoController extends  ApiController {
             //  map.put("userPassword",password); //http://192.168.3.199:8080/myadmin
             parammap.put("sign", CommonParams.getHttpSign(json));
 
-
             String action = "occupation/getCommentList";//"userinfo/userlogin";
-            String ret = HttpPostUrl.sendPostNew("http://localhost:8080/myadmin/" + action, parammap);
+            String ret = HttpPostUrl.sendPostNew("http://localhost:8080/admin/" + action, parammap);
             writeJson(response, ret);
        // }
 
@@ -248,7 +246,6 @@ public  class UserInfoController extends  ApiController {
             writeJson(response, ret);
        }
        */
-
     }
 
 
